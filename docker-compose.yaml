@@ -1,0 +1,43 @@
+
+services:
+  dev-sever:
+    image: blastfm-sever:1.0
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    env_file: .env
+    hostname: ${SERVER_HOST}
+    ports: 
+      - ${SERVER_PORT}:${SERVER_PORT}
+    command: "npm run dev"
+    volumes:
+      - ./server:/server
+      - blastfm-server-node-modules-v:/server/node_modules
+    depends_on:
+      dev-database:
+        condition: service_healthy    
+
+  dev-database:
+    image: blastfm-database:1.0
+    build: 
+      context: ./database
+      dockerfile: Dockerfile
+    env_file: .env
+    hostname: ${POSTGRES_HOST}
+    ports: 
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - blastfm-database-v:/var/lib/postgresql/data
+    command: "-p ${POSTGRES_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      start_period: 0s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  blastfm-server-node-modules-v:
+    name: "blastfm-server-node-modules-v"
+  blastfm-database-v:
+    name: "blastfm-database-v"
