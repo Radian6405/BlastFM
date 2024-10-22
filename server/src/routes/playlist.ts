@@ -71,7 +71,7 @@ router.delete(
   "/delete",
   aucthenticateJWT,
   (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.body;
+    const { id } = req.query;
     if (id === null || id === undefined) {
       res.status(400).send({
         message: "Missing necessary details",
@@ -89,7 +89,7 @@ router.delete(
       return;
     }
 
-    const { id } = req.body;
+    const { id } = req.query;
 
     try {
       const deletedPlaylist = await pool.query(
