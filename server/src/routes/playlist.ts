@@ -5,7 +5,7 @@ const router: Router = Router();
 
 // to CREATE a playlist
 router.post(
-  "/api/playlist",
+  "/create",
   aucthenticateJWT,
   (req: Request, res: Response, next: NextFunction) => {
     const { name, description, is_private } = req.body;
@@ -60,7 +60,7 @@ router.post(
         });
       }
     } catch (error) {
-      console.log("Error at POST /api/playlist route:\n", error);
+      console.log("Error at /playlist/create route:\n", error);
       res.sendStatus(500);
     }
   }
@@ -68,7 +68,7 @@ router.post(
 
 // to DELETE a playlist
 router.delete(
-  "/api/playlist",
+  "/delete",
   aucthenticateJWT,
   (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.body;
@@ -104,7 +104,7 @@ router.delete(
         });
       }
     } catch (error) {
-      console.log("Error at DELETE /api/playlist route:\n", error);
+      console.log("Error at /playlist/delete route:\n", error);
       res.sendStatus(500);
     }
   }
@@ -112,7 +112,7 @@ router.delete(
 
 // to READ details of a playlist
 router.get(
-  "/api/playlist-details",
+  "/details",
   (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
     if (id === null || id === undefined) {
@@ -155,14 +155,14 @@ router.get(
         });
       }
     } catch (error) {
-      console.log("Error at GET /api/playlist-details route:\n", error);
+      console.log("Error at GET /playlist/details route:\n", error);
       res.sendStatus(500);
     }
   }
 );
 // to READ song list of a playlist
 router.get(
-  "/api/playlist-songs",
+  "/songlist",
   (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
     if (id === null || id === undefined) {
@@ -212,7 +212,7 @@ router.get(
         });
       }
     } catch (error) {
-      console.log("Error at GET /api/playlist-songs route:\n", error);
+      console.log("Error at GET /playlist/songlist route:\n", error);
       res.sendStatus(500);
     }
   }
@@ -220,7 +220,7 @@ router.get(
 
 // to Read list of user's songs
 router.get(
-  "/api/user-playlists",
+  "/user-playlists",
   aucthenticateJWT,
   async (req: Request, res: Response, next: NextFunction) => {
     if (req.user === null) {
@@ -242,7 +242,7 @@ router.get(
           message: "Could not read user's playlist data",
         });
     } catch (error) {
-      console.log("Error at GET /api/user-playlists route:\n", error);
+      console.log("Error at GET /playlist/user-playlists route:\n", error);
       res.sendStatus(500);
     }
   }

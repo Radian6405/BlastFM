@@ -16,7 +16,7 @@ import {
 const router: Router = Router();
 
 router.post(
-  "/api/signup",
+  "/signup",
   UsernameValidation,
   UsernameAvailabilityValidation,
   EmailValidation,
@@ -38,14 +38,14 @@ router.post(
         token: generateAccessToken(newUser.rows[0].id),
       });
     } catch (error) {
-      console.log("Error at /api/signup route:\n", error);
+      console.log("Error at /auth/signup route:\n", error);
       res.sendStatus(500);
     }
   }
 );
 
 router.post(
-  "/api/signin",
+  "/signin",
   UsernameValidation,
   PasswordValidation,
   async (req: Request, res: Response) => {
@@ -71,13 +71,13 @@ router.post(
         });
       }
     } catch (error) {
-      console.log("Error at /api/signin route:\n", error);
+      console.log("Error at /auth/signin route:\n", error);
       res.sendStatus(500);
     }
   }
 );
 
-router.get("/api/userdata", aucthenticateJWT, (req: Request, res: Response) => {
+router.get("/userdata", aucthenticateJWT, (req: Request, res: Response) => {
   if (req.user === null) {
     res.status(401).send({
       message: "Invalid token or no token provided",
