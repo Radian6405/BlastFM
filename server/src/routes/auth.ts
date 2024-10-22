@@ -35,7 +35,7 @@ router.post(
 
       res.status(201).send({
         message: `Successfully registered as ${username}`,
-        token: generateAccessToken(newUser.rows[0].user_id),
+        token: generateAccessToken(newUser.rows[0].id),
       });
     } catch (error) {
       console.log("Error at /api/signup route:\n", error);
@@ -63,7 +63,7 @@ router.post(
       ) {
         res.status(200).send({
           message: `Successfully logged in as ${findUser.rows[0].username}`,
-          token: generateAccessToken(findUser.rows[0].user_id),
+          token: generateAccessToken(findUser.rows[0].id),
         });
       } else {
         res.status(401).send({

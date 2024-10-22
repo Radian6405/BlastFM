@@ -15,9 +15,9 @@ export const hashPassword = async (password: string) => {
 export const comparePassword = (plain: string, hashed: string) =>
   bcrypt.compareSync(plain, hashed);
 
-export function generateAccessToken(user_id: number) {
+export function generateAccessToken(id: number) {
   return jwt.sign(
-    { user_id: user_id },
+    { id: id },
     process.env.JWT_TOKEN_SECRET as Secret,
     {
       expiresIn: process.env.JWT_TOKEN_LIFETIME ?? "1d",
@@ -48,8 +48,8 @@ export function aucthenticateJWT(req: Request, res: Response, next: Function) {
       let findUser;
       try {
         findUser = await pool.query(
-          "SELECT user_id, username, email FROM users WHERE user_id = $1",
-          [data.user_id]
+          "SELECT id, username, email FROM users WHERE id = $1",
+          [data.id]
         );
       } catch (error) {
         console.log("Error at jwt authentication step:\n", error);
