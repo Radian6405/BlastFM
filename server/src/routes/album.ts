@@ -161,4 +161,92 @@ router.get(
   }
 );
 
+// to READ details of an album
+router.get(
+  "/details",
+  (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+    if (id === null || id === undefined) {
+      res.status(400).send({
+        message: "Missing necessary details",
+      });
+      return;
+    }
+
+    next();
+  },
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+
+    try {
+      const album = await pool.query(
+        `SELECT a.id, a.name, a.description, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
+        INNER JOIN artists ar ON ar.id = a.artist_id 
+        WHERE a.id = $1;`,
+        [id]
+      );
+
+      if (Number(album.rowCount) > 0) res.status(200).send(album.rows[0]);
+      else
+        res.status(400).send({
+          message: "Album does not exist",
+        });
+    } catch (error) {
+      console.log("Error at GET /album/details route:\n", error);
+      res.sendStatus(500);
+    }
+  }
+);
+// to READ all songs in an album
+router.get(
+  "/songlist",
+  (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+    if (id === null || id === undefined) {
+      res.status(400).send({
+        message: "Missing necessary details",
+      });
+      return;
+    }
+
+    next();
+  },
+  aucthenticateJWT,
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+
+    try {
+      const album = await pool.query("SELECT * FROM albums WHERE id = $1;", [
+        id,
+      ]);
+      if (Number(album.rowCount === 0)) {
+        res.status(400).send({
+          message: "Album does not exist",
+        });
+        return;
+      }
+
+      const albumSongs = await pool.query(
+        `SELECT q.id, q.name, q.playtime, q.artists
+          FROM albums_songs als
+          INNER JOIN
+          (
+            SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
+            FROM songs s
+            INNER JOIN artists_songs ars ON ars.song_id = s.id
+            INNER JOIN artists a ON a.id = ars.artist_id
+            GROUP BY s.id,s.name,s.playtime
+          ) q ON q.id = als.song_id
+          WHERE als.album_id = $1;`,
+        [id]
+      );
+
+      res.status(200).send({ songs: albumSongs.rows });
+    } catch (error) {
+      console.log("Error at GET /album/songlist route:\n", error);
+      res.sendStatus(500);
+    }
+  }
+);
+
 export default router;
