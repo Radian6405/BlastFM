@@ -184,13 +184,20 @@ router.get(
         [id]
       );
       const playlistSongs = await pool.query(
-        `SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
+        `SELECT q.id, q.name, q.playtime, q.artists, jsonb_agg(a) as albums 
+        FROM 
+        (
+          SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
         FROM playlists_songs ps 
         INNER JOIN songs s ON s.id = ps.song_id 
         INNER JOIN artists_songs ars ON ars.song_id = s.id 
         INNER JOIN artists a ON a.id = ars.artist_id 
         WHERE playlist_id = $1 
-        GROUP BY s.id,s.name,s.playtime`,
+        GROUP BY s.id,s.name,s.playtime
+        ) q 
+        INNER JOIN albums_songs abs ON q.id = abs.song_id 
+        INNER JOIN albums a on a.id = abs.album_id 
+        GROUP BY q.id, q.name, q.playtime, q.artists;`,
         [id]
       );
 
