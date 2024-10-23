@@ -15,8 +15,8 @@ router.post(
       return;
     }
 
-    const { song_id } = req.body;
-    if (song_id === undefined || song_id === null) {
+    const { id } = req.body;
+    if (id === undefined || id === null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -26,12 +26,10 @@ router.post(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { song_id } = req.body;
+    const { id } = req.body;
     try {
       // checking if song exists
-      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [
-        song_id,
-      ]);
+      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [id]);
       if (Number(song.rowCount) === 0) {
         res.status(400).send({
           message: "Song does not exist",
@@ -42,7 +40,7 @@ router.post(
       // checking if relation already exists
       const relation = await pool.query(
         "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, song_id]
+        [req.user?.id, id]
       );
       if (Number(relation.rowCount) > 0) {
         res.status(400).send({
@@ -53,7 +51,7 @@ router.post(
 
       const newRelation = await pool.query(
         "INSERT INTO liked_songs(user_id,song_id) VALUES($1,$2);",
-        [req.user?.id, song_id]
+        [req.user?.id, id]
       );
       if (Number(newRelation.rowCount) > 0) res.sendStatus(201);
       else
@@ -78,8 +76,8 @@ router.delete(
       return;
     }
 
-    const { song_id } = req.query;
-    if (song_id === undefined || song_id === null) {
+    const { id } = req.query;
+    if (id === undefined || id === null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -89,12 +87,10 @@ router.delete(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { song_id } = req.query;
+    const { id } = req.query;
     try {
       // checking if song exists
-      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [
-        song_id,
-      ]);
+      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [id]);
       if (Number(song.rowCount) === 0) {
         res.status(400).send({
           message: "Song does not exist",
@@ -105,7 +101,7 @@ router.delete(
       // checking if relation exists
       const relation = await pool.query(
         "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, song_id]
+        [req.user?.id, id]
       );
       if (Number(relation.rowCount) === 0) {
         res.status(400).send({
@@ -116,7 +112,7 @@ router.delete(
 
       const newRelation = await pool.query(
         "DELETE FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, song_id]
+        [req.user?.id, id]
       );
       if (Number(newRelation.rowCount) > 0) res.sendStatus(200);
       else

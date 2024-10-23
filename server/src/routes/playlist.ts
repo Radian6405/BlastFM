@@ -225,7 +225,7 @@ router.get(
   }
 );
 
-// to Read list of user's playlists
+// to READ list of user's playlists
 router.get(
   "/user-playlists",
   aucthenticateJWT,
@@ -242,12 +242,7 @@ router.get(
         "SELECT * FROM playlists WHERE owner_id = $1;",
         [req.user.id]
       );
-      if (Number(playlists.rowCount) > 0)
-        res.status(200).send({ playlists: playlists.rows });
-      else
-        res.status(400).send({
-          message: "Could not read user's playlist data",
-        });
+      res.status(200).send({ playlists: playlists.rows });
     } catch (error) {
       console.log("Error at GET /playlist/user-playlists route:\n", error);
       res.sendStatus(500);
