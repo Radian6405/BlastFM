@@ -18,7 +18,7 @@ services:
         condition: service_healthy    
 
   dev-database:
-    image: blastfm-database:1.0
+    image: blastfm-database:1.1
     build: 
       context: ./database
       dockerfile: Dockerfile
