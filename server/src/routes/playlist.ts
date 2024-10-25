@@ -309,8 +309,22 @@ router.post(
         "INSERT INTO playlists_songs(playlist_id,song_id) VALUES($1,$2);",
         [playlist_id, song_id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(201);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        const updatePlaylist = await pool.query(
+          `UPDATE playlists 
+          SET 
+            track_count = track_count + 1, 
+            total_playtime = total_playtime + (
+              SELECT playtime 
+              FROM songs 
+              WHERE id = $1
+            )  
+            WHERE id = $2;`,
+          [song_id, playlist_id]
+        );
+
+        res.sendStatus(201);
+      } else
         res.status(400).send({
           message: "Could not add song to the playlist",
         });
@@ -379,8 +393,21 @@ router.delete(
         "DELETE FROM playlists_songs WHERE playlist_id = $1 AND song_id = $2;",
         [playlist_id, song_id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(200);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        const updatePlaylist = await pool.query(
+          `UPDATE playlists 
+          SET 
+            track_count = track_count - 1, 
+            total_playtime = total_playtime - (
+              SELECT playtime 
+              FROM songs 
+              WHERE id = $1
+            )  
+            WHERE id = $2;`,
+          [song_id, playlist_id]
+        );
+        res.sendStatus(200);
+      } else
         res.status(400).send({
           message: "Could not delete song from the playlist",
         });

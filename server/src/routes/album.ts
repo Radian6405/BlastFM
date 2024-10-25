@@ -146,7 +146,7 @@ router.get(
 
     try {
       const albums = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist 
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, jsonb_build_object('id',ar.id,'name',ar.name) as artist 
             FROM starred_albums sa 
             INNER JOIN albums a ON a.id = sa.album_id 
             INNER JOIN artists ar ON ar.id = a.artist_id 
@@ -180,7 +180,7 @@ router.get(
 
     try {
       const album = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
         INNER JOIN artists ar ON ar.id = a.artist_id 
         WHERE a.id = $1;`,
         [id]

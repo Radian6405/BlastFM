@@ -16,13 +16,9 @@ export const comparePassword = (plain: string, hashed: string) =>
   bcrypt.compareSync(plain, hashed);
 
 export function generateAccessToken(id: number) {
-  return jwt.sign(
-    { id: id },
-    process.env.JWT_TOKEN_SECRET as Secret,
-    {
-      expiresIn: process.env.JWT_TOKEN_LIFETIME ?? "1d",
-    }
-  );
+  return jwt.sign({ id: id }, process.env.JWT_TOKEN_SECRET as Secret, {
+    expiresIn: process.env.JWT_TOKEN_LIFETIME ?? "1d",
+  });
 }
 
 export function aucthenticateJWT(req: Request, res: Response, next: Function) {
@@ -43,6 +39,7 @@ export function aucthenticateJWT(req: Request, res: Response, next: Function) {
       if (err) {
         req.user = null;
         next();
+        return;
       }
 
       let findUser;
