@@ -14,7 +14,7 @@ import {
 const router: Router = Router();
 dotenv.config({ path: "../../../../.env" });
 
-router.get(
+router.post(
   "/sync/starred-albums",
   aucthenticateJWT,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -25,7 +25,7 @@ router.get(
       return;
     }
 
-    const { access_token } = req.query;
+    const { access_token } = req.body;
     if (access_token === null || access_token === undefined) {
       res.status(400).send({
         message: "Missing necessary details",
@@ -61,25 +61,25 @@ router.get(
     const albumsCreated = await createAlbums(data);
 
     // Step 3: connecting user with albums
-    const addedAlbumsCreated = await connectUsersToAlbums(data, req.user);
+    const userAlbumConnections = await connectUsersToAlbums(data, req.user);
 
     if (
       albumsCreated > 0 ||
       albumArtistsCreated + songArtistssCreated > 0 ||
       songsCreated > 0 ||
-      addedAlbumsCreated
+      userAlbumConnections > 0
     )
       res.status(201).send({
         albums_updated: albumsCreated,
         artists_updated: albumArtistsCreated + songArtistssCreated,
         song_updated: songsCreated,
-        albums_added: addedAlbumsCreated,
+        albums_connected: userAlbumConnections,
       });
     else res.sendStatus(200);
   }
 );
 
-router.get(
+router.post(
   "/sync/playlists",
   aucthenticateJWT,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -90,7 +90,7 @@ router.get(
       return;
     }
 
-    const { access_token } = req.query;
+    const { access_token } = req.body;
     if (access_token === null || access_token === undefined) {
       res.status(400).send({
         message: "Missing necessary details",

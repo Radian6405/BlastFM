@@ -2,7 +2,7 @@ import pool from "../../../db";
 
 // connects users to their albums
 export async function connectUsersToAlbums(albumData: any, user: any) {
-  let relationList: any[] = [];
+  let relations: number = 0;
 
   for (let i = 0; i < albumData.length; i++) {
     try {
@@ -16,15 +16,15 @@ export async function connectUsersToAlbums(albumData: any, user: any) {
 
       // creating relation
       const newRelation = await pool.query(
-        "INSERT INTO starred_albums(user_id,album_id) VALUES ($1,(SELECT id FROM albums WHERE spotify_id = $2)) RETURNING *",
+        "INSERT INTO starred_albums(user_id,album_id) VALUES ($1,(SELECT id FROM albums WHERE spotify_id = $2))",
         [user.id, albumData[i].spotify_id]
       );
 
-      relationList.push(newRelation.rows[0]);
+      relations++;
     } catch (error) {
       console.log("Error creating users-albums relation:\n", error);
     }
   }
 
-  return relationList;
+  return relations;
 }
