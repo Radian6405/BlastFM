@@ -6,6 +6,7 @@ import pool from "../../db";
 const router: Router = Router();
 dotenv.config({ path: "../../../../.env" });
 
+// returns a url to redirect user to
 router.get(
   "/connect-url",
   aucthenticateJWT,
@@ -29,7 +30,7 @@ router.get(
     const query: string = new URLSearchParams([
       ["response_type", "code"],
       ["client_id", process.env.SPOTIFY_CLIENT_ID],
-      ["scope", "user-read-email"], //TODO: update the scopes
+      ["scope", "user-read-email user-library-read"], //TODO: update the scopes
       ["redirect_uri", "http://127.0.0.1:5173/spotify-connection-redirect"],
     ]).toString();
 
@@ -39,6 +40,7 @@ router.get(
   }
 );
 
+// gets refresh and access token and saves user's refresh token
 router.patch(
   "/save-token",
   aucthenticateJWT,
@@ -115,6 +117,7 @@ router.patch(
   }
 );
 
+// gets acess tokens from refresh tokens
 router.get(
   "/access-token",
   aucthenticateJWT,
@@ -151,7 +154,6 @@ router.get(
     }
   }
 );
-
 async function getAccessToken(refresh_token: string) {
   if (process.env.SPOTIFY_CLIENT_ID === undefined) return null;
 

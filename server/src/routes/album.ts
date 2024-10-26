@@ -150,7 +150,8 @@ router.get(
             FROM starred_albums sa 
             INNER JOIN albums a ON a.id = sa.album_id 
             INNER JOIN artists ar ON ar.id = a.artist_id 
-            WHERE sa.user_id = 3;`
+            WHERE sa.user_id = $1;`,
+        [req.user.id]
       );
 
       res.status(200).send({ albums: albums.rows });
