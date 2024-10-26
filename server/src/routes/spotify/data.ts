@@ -2,8 +2,12 @@ import { Router, Request, Response, NextFunction } from "express";
 import { aucthenticateJWT } from "../../util/authHelpers";
 import dotenv from "dotenv";
 import pool from "../../db";
-import { getUserPlaylists, getUserSavedAlbums } from "./helpers/getSpotify";
-import { connectUsersToAlbums } from "./helpers/connect";
+import {
+  getUserLikedSongs,
+  getUserPlaylists,
+  getUserSavedAlbums,
+} from "./helpers/getSpotify";
+import { connectUsersToAlbums, connectUsersToSongs } from "./helpers/connect";
 import {
   createArtists,
   createSongs,
@@ -135,6 +139,52 @@ router.post(
         artists_updated: artistsCreated,
         song_updated: songsCreated,
         playlists_updated: playlistsCreated,
+      });
+    else res.sendStatus(200);
+  }
+);
+
+router.post(
+  "/sync/liked-songs",
+  aucthenticateJWT,
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (req.user === null) {
+      res.status(401).send({
+        message: "Invalid token or no token provided",
+      });
+      return;
+    }
+
+    const { access_token } = req.body;
+    if (access_token === null || access_token === undefined) {
+      res.status(400).send({
+        message: "Missing necessary details",
+      });
+      return;
+    }
+
+    // gets songs data
+    const data = await getUserLikedSongs(access_token);
+    // res.send(data);
+
+    // Step 1: creating artists
+    let artist_list: any[] = [];
+    data.forEach((song: any) => {
+      artist_list.push(...song.artists);
+    });
+    const artistsCreated = await createArtists(artist_list);
+
+    // Step 2: creating songs
+    const songsCreated = await createSongs(data);
+
+    // Step 3: connecting songs to user
+    const userAlbumConnections = await connectUsersToSongs(data, req.user);
+
+    if (artistsCreated > 0 || songsCreated > 0 || userAlbumConnections > 0)
+      res.status(201).send({
+        artists_updated: artistsCreated,
+        songs_updated: songsCreated,
+        songs_connected: userAlbumConnections,
       });
     else res.sendStatus(200);
   }

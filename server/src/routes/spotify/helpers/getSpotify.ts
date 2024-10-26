@@ -69,6 +69,7 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
 
   let parsedData: any[] = [];
 
+  // for each playlist gets the songs
   for (let i = 0; i < data.total; i++) {
     if (data.items[i].owner.id !== user_id) continue;
 
@@ -131,6 +132,47 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
       }),
     });
   }
+
+  return parsedData;
+}
+
+// gets and parses liked songs of a user
+export async function getUserLikedSongs(access_token: string) {
+  let total = 0;
+  let songlist: any = [];
+
+  // gets song data
+  for (let j = 0; j <= total; j += 50) {
+    const song_query: string = new URLSearchParams([
+      ["limit", "50"],
+      ["market", "IN"],
+      ["offset", `${j}`],
+    ]).toString();
+    const getSongs = await fetch(
+      "https://api.spotify.com/v1/me/tracks?" + song_query,
+      {
+        headers: {
+          Authorization: "Bearer " + access_token,
+        },
+      }
+    );
+    // console.log(data.items[i].tracks.href + "?" + song_query);
+    if (!getSongs.ok) continue;
+    const songData = await getSongs.json();
+    total = songData.total;
+    songlist.push(...songData.items);
+  }
+
+  const parsedData = songlist.map((song: any) => {
+    return {
+      spotify_id: song.track.id,
+      name: song.track.name,
+      playtime: Math.round(song.track.duration_ms / 1000),
+      artists: song.track.artists.map((artist: any) => {
+        return { name: artist.name, spotify_id: artist.id };
+      }),
+    };
+  });
 
   return parsedData;
 }
