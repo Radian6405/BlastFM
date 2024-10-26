@@ -11,6 +11,7 @@ CREATE TABLE
     playlists (
         id SERIAL NOT NULL PRIMARY KEY,
         name VARCHAR(256) NOT NULL,
+        spotify_id VARCHAR(24) UNIQUE,
         description VARCHAR(256),
         cover_image VARCHAR(256),
         owner_id INTEGER REFERENCES users (id) ON DELETE CASCADE NOT NULL,
