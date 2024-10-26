@@ -30,7 +30,10 @@ router.get(
     const query: string = new URLSearchParams([
       ["response_type", "code"],
       ["client_id", process.env.SPOTIFY_CLIENT_ID],
-      ["scope", "user-read-email user-library-read"], //TODO: update the scopes
+      [
+        "scope",
+        "user-read-email user-library-read user-read-private playlist-read-private",
+      ], //TODO: update the scopes
       ["redirect_uri", "http://127.0.0.1:5173/spotify-connection-redirect"],
     ]).toString();
 
