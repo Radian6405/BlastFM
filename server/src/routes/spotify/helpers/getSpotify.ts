@@ -70,7 +70,6 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
   let parsedData: any[] = [];
 
   for (let i = 0; i < data.total; i++) {
-    const total_playtime: number = 0;
     if (data.items[i].owner.id !== user_id) continue;
 
     // gets song data
@@ -100,12 +99,17 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
       songlist.push(...songData.items);
     }
 
+    let total_playtime: number = 0;
+    songlist.forEach((song: any) => {
+      total_playtime += song.track.duration_ms;
+    });
+
     parsedData.push({
       spotify_id: data.items[i].id,
       name: data.items[i].name,
       track_count: data.items[i].tracks.total,
       is_private: !data.items[i].public,
-      total_playtime: total_playtime,
+      total_playtime: Math.round(total_playtime / 1000),
       songs: songlist.map((item: any) => {
         return {
           artists: item.track.artists.map((i: any) => {
