@@ -3,16 +3,18 @@
 @tailwind utilities;
 
 .dark {
-  --text: #f0f0f0;
-  --background: #121212;
-  --primary: #3244e7;
-  --secondary: #1a2161;
-  --accent: #8dabe8;
+  --text: 240, 240, 240;
+  --light-background: 32, 32, 32;
+  --background: 18, 18, 18;
+  --primary: 50, 68, 231;
+  --secondary: 26, 33, 97;
+  --accent: 141, 171, 232;
 }
 .light {
-  --text: #0f0f0f;
-  --background: #ededed;
-  --primary: #182acd;
-  --secondary: #9ea5e5;
-  --accent: #173672;
+  --text: 15, 15, 15;
+  --light-background: 222, 222, 222;
+  --background: 237, 237, 237;
+  --primary: 24, 42, 205;
+  --secondary: 158, 165, 229;
+  --accent: 23, 54, 114;
 }
