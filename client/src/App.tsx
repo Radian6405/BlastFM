@@ -6,8 +6,16 @@ import Playlists from "./components/pages/Playlists";
 import Albums from "./components/pages/Albums";
 import Songs from "./components/pages/Songs";
 import MyListening from "./components/pages/MyListening";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    document.body.className = theme;
+    document.body.style.backgroundColor = "var(--background)";
+    document.body.style.color = "var(--text)";
+  }, [theme]);
   return (
     <>
       <Navbar />

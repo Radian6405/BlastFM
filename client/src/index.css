@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.dark {
+  --text: #f0f0f0;
+  --background: #121212;
+  --primary: #3244e7;
+  --secondary: #1a2161;
+  --accent: #8dabe8;
+}
+.light {
+  --text: #0f0f0f;
+  --background: #ededed;
+  --primary: #182acd;
+  --secondary: #9ea5e5;
+  --accent: #173672;
+}

@@ -58,14 +58,21 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar
+      position="static"
+      sx={{ backgroundColor: "var(--background)", color: "var(--text)" }}
+    >
       <Container
         maxWidth="xl"
         sx={{
           padding: 1,
         }}
       >
-        <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+        <Toolbar
+          disableGutters
+          sx={{ justifyContent: "space-between" }}
+          className="gap-5"
+        >
           <Link to={"/"} className="hidden md:flex">
             <Typography
               variant="h3"
@@ -136,12 +143,20 @@ function Navbar() {
             </Typography>
           </Link>
 
-          <Box sx={{ flexGrow: 1 }} className="hidden md:flex">
+          <Box
+            sx={{ flexGrow: 1, color: "var(--text)" }}
+            className="hidden gap-2 md:flex"
+          >
             {pages.map((page, i) => (
               <Link to={page.to} key={i}>
                 <Button
                   onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: "white", display: "block" }}
+                  sx={{
+                    my: 2,
+                    display: "block",
+                    fontSize: 16,
+                    color: "var(--text)",
+                  }}
                 >
                   {page.text}
                 </Button>
