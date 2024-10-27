@@ -1,5 +1,5 @@
 import { playlist } from "../../types/interfaces";
-import PlaylistCard from "../util/PlaylistCard";
+import PlaylistCard, { CreatePlaylistCard } from "../util/PlaylistCard";
 
 function Playlists() {
   const testPlaylist1: playlist = {
@@ -34,6 +34,7 @@ function Playlists() {
           <PlaylistCard playlist={testPlaylist1} />
           <PlaylistCard playlist={testPlaylist2} />
           <PlaylistCard playlist={testPlaylist1} />
+          <CreatePlaylistCard />
         </div>
       </div>
     </>

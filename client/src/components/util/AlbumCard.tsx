@@ -9,6 +9,7 @@ function AlbumCard({ album }: { album: album }) {
       sx={{
         maxWidth: 300,
         borderRadius: 2,
+        cursor: "pointer",
         backgroundColor: "rgba(var(--light-background))",
       }}
     >
