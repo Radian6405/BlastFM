@@ -60,14 +60,12 @@ function Navbar() {
   return (
     <AppBar
       position="static"
-      sx={{ backgroundColor: "var(--background)", color: "var(--text)" }}
+      sx={{
+        backgroundColor: "rgba(var(--background))",
+        color: "rgba(var(--text))",
+      }}
     >
-      <Container
-        maxWidth="xl"
-        sx={{
-          padding: 1,
-        }}
-      >
+      <Container maxWidth="xl" className="px-16 py-2" disableGutters>
         <Toolbar
           disableGutters
           sx={{ justifyContent: "space-between" }}
@@ -144,7 +142,7 @@ function Navbar() {
           </Link>
 
           <Box
-            sx={{ flexGrow: 1, color: "var(--text)" }}
+            sx={{ flexGrow: 1, color: "rgba(var(--text))" }}
             className="hidden gap-2 md:flex"
           >
             {pages.map((page, i) => (
@@ -155,7 +153,7 @@ function Navbar() {
                     my: 2,
                     display: "block",
                     fontSize: 16,
-                    color: "var(--text)",
+                    color: "rgba(var(--text))",
                   }}
                 >
                   {page.text}

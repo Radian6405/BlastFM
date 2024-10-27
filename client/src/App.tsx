@@ -13,8 +13,8 @@ function App() {
 
   useEffect(() => {
     document.body.className = theme;
-    document.body.style.backgroundColor = "var(--background)";
-    document.body.style.color = "var(--text)";
+    document.body.style.backgroundColor = "rgba(var(--background))";
+    document.body.style.color = "rgba(var(--text))";
   }, [theme]);
   return (
     <>
