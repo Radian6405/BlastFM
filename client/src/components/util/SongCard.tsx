@@ -2,8 +2,8 @@ import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import { artist, song } from "../../types/interfaces";
 import { Box } from "@mui/material";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { Link } from "react-router-dom";
+import { LikeButton, MoreButton } from "./Buttons";
 
 function SongCard({ song }: { song: song }) {
   return (
@@ -17,14 +17,15 @@ function SongCard({ song }: { song: song }) {
         flexDirection: "row",
         justifyContent: "start",
         alignItems: "center",
-        padding: 1,
+        paddingY: 1,
+        paddingX: 2,
       }}
     >
-      <div className="ml-2 mr-4 flex size-10 items-center justify-center">
+      {/* <div className="mr-2 flex size-10 items-center justify-center">
         <div className="hover:bg-text/20 flex size-10 cursor-pointer items-center justify-center rounded-full">
           <PlayArrowIcon sx={{ fontSize: 36 }} />
         </div>
-      </div>
+      </div> */}
       <CardMedia
         sx={{ height: 60, width: 60 }}
         image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXx2xFk_wEb1hLQoDo4Ar3YbhosCPyOCfOgA&s"
@@ -38,26 +39,25 @@ function SongCard({ song }: { song: song }) {
           width: "100%",
         }}
       >
-        <div className="line-clamp-1 w-[40%] overflow-hidden px-4 text-2xl">
-          {song.name}
+        <div className="line-clamp-1 w-[40%] cursor-pointer overflow-hidden px-4 text-2xl hover:underline ">
+          <Link to={"/song/" + String(song.id)}>{song.name}</Link>
         </div>
         <div className="text-text line-clamp-1 w-[30%] overflow-hidden text-lg">
           {song.artists.map((artist: artist, i: number) => {
             return (
-              <span className="cursor-pointer hover:underline">
+              <span>
                 {artist.name}
                 {i !== song.artists.length - 1 && ", "}
               </span>
             );
           })}
         </div>
-        <div className="text-text w-[25%] pr-4 text-right">
-          {Math.floor(song.playtime / 60)}:{song.playtime % 60}
-        </div>
-        <div className="flex w-[5%] items-center justify-center">
-          <div className="hover:bg-text/20 flex size-10 cursor-pointer items-center justify-center rounded-full">
-            <MoreVertIcon />
-          </div>
+        <div className="text-text flex w-[30%] items-center justify-end gap-3 pr-4 ">
+          <LikeButton tooltip="like" />
+          <span className="text-right">
+            {Math.floor(song.playtime / 60)}:{song.playtime % 60}
+          </span>
+          <MoreButton tooltip="More options" />
         </div>
       </Box>
     </Card>

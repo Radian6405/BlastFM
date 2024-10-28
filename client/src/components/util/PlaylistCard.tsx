@@ -12,6 +12,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
+import { Link } from "react-router-dom";
 
 function PlaylistCard({ playlist }: { playlist: playlist }) {
   return (
@@ -20,7 +21,6 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
         maxWidth: 300,
         borderRadius: 2,
         backgroundColor: "rgba(var(--light-background))",
-        cursor: "pointer",
       }}
     >
       <CardMedia
@@ -37,8 +37,8 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
         }}
       >
         <div className="text-text my-4 flex flex-col items-start justify-between px-4">
-          <div className="text-text w-full overflow-hidden text-2xl font-bold">
-            {playlist.name}
+          <div className="text-text w-full cursor-pointer overflow-hidden text-2xl font-bold hover:underline">
+            <Link to={"/playlist/" + String(playlist.id)}>{playlist.name}</Link>
           </div>
           <div className="text-text/70 overflow-hidden text-lg">
             {playlist.track_count} tracks

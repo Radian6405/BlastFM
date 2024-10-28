@@ -2,6 +2,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import { album } from "../../types/interfaces";
+import { Link } from "react-router-dom";
 
 function AlbumCard({ album }: { album: album }) {
   return (
@@ -9,7 +10,6 @@ function AlbumCard({ album }: { album: album }) {
       sx={{
         maxWidth: 300,
         borderRadius: 2,
-        cursor: "pointer",
         backgroundColor: "rgba(var(--light-background))",
       }}
     >
@@ -27,8 +27,8 @@ function AlbumCard({ album }: { album: album }) {
         }}
       >
         <div className="text-text my-4 flex flex-col items-start justify-between px-4">
-          <div className="text-text w-full overflow-hidden text-2xl">
-            {album.name}
+          <div className="text-text w-full overflow-hidden text-2xl hover:underline">
+            <Link to={"/album/" + String(album.id)}>{album.name}</Link>
           </div>
           <div className="text-text/70 text-md overflow-hidden">
             {album.track_count} tracks
