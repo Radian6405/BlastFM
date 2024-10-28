@@ -1,4 +1,5 @@
 import { Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 function Home() {
   return (
@@ -22,23 +23,25 @@ function Home() {
             </div>
           </div>
           <div className="col-span-1 row-span-1 row-start-3 flex flex-row items-start justify-start gap-4 px-2 py-4">
-            <Button
-              variant="contained"
-              disableElevation
-              sx={{
-                backgroundColor: "rgba(var(--primary))",
-                borderRadius: 2,
-                textTransform: "capitalize",
-                color: "rgba(var(--text))",
-              }}
-            >
-              <span className="mx-1 my-2 text-2xl">Get Started</span>
-            </Button>
+            <Link to="/login">
+              <Button
+                variant="contained"
+                disableElevation
+                sx={{
+                  backgroundColor: "rgba(var(--primary))",
+                  borderRadius: 2,
+                  textTransform: "capitalize",
+                  color: "rgba(var(--text))",
+                }}
+              >
+                <span className="mx-1 my-2 text-2xl">Get Started</span>
+              </Button>
+            </Link>
             <Button
               variant="outlined"
               disableElevation
               sx={{
-                backgroundColor: "rgba(var(--))",
+                backgroundColor: "rgba(var(--primary))",
                 borderRadius: 2,
                 textTransform: "capitalize",
                 color: "rgba(var(--text))",

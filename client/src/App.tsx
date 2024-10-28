@@ -7,8 +7,12 @@ import Albums from "./components/pages/Albums";
 import Songs from "./components/pages/Songs";
 import MyListening from "./components/pages/MyListening";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import Login from "./components/pages/Login";
+import Logout from "./components/pages/Logout";
 
 function App() {
+  const location = useLocation();
   const [theme, setTheme] = useState("dark");
 
   useEffect(() => {
@@ -18,7 +22,15 @@ function App() {
   }, [theme]);
   return (
     <>
-      <Navbar />
+      <div
+        className={
+          location.pathname === "/login" || location.pathname === "/logout"
+            ? "hidden"
+            : "block"
+        }
+      >
+        <Navbar />
+      </div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/playlists" element={<Playlists />} />
@@ -29,6 +41,8 @@ function App() {
           path="/spotify-connection-redirect"
           element={<SpotifyRedirect />}
         />
+        <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<Logout />} />
       </Routes>
     </>
   );

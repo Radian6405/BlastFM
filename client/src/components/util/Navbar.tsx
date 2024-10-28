@@ -11,7 +11,7 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const pages = [
   { text: "Playlists", to: "/playlists" },
@@ -19,22 +19,24 @@ const pages = [
   { text: "Songs", to: "/songs" },
   { text: "My Listening", to: "/my-listening" },
 ];
-const settings = [
-  {
-    text: "Logout",
-    function: () => {
-      console.log("logged out");
-    },
-  },
-  {
-    text: "Sync data",
-    function: () => {
-      console.log("synced data");
-    },
-  },
-];
 
 function Navbar() {
+  const navigate = useNavigate();
+  const settings = [
+    {
+      text: "Logout",
+      function: () => {
+        navigate("/logout");
+        console.log("logged out");
+      },
+    },
+    {
+      text: "Sync data",
+      function: () => {
+        console.log("synced data");
+      },
+    },
+  ];
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
