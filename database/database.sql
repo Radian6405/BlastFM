@@ -24,6 +24,7 @@ CREATE TABLE
     songs (
         id SERIAL NOT NULL PRIMARY KEY,
         spotify_id VARCHAR(24) UNIQUE,
+        cover_image VARCHAR(256),
         name VARCHAR(256) NOT NULL,
         playtime INTEGER NOT NULL
     );

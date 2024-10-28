@@ -165,6 +165,10 @@ router.post(
 
     // gets songs data
     const data = await getUserLikedSongs(access_token);
+    if (data === null) {
+      res.sendStatus(400);
+      return;
+    }
     // res.send(data);
 
     // Step 1: creating artists

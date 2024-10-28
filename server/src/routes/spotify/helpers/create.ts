@@ -40,10 +40,15 @@ export async function createSongs(songData: any) {
       // creating song
       const newSong = await pool.query(
         `INSERT INTO songs
-          (name,playtime,spotify_id) 
-          VALUES ($1,$2,$3) 
+          (name,playtime,spotify_id,cover_image) 
+          VALUES ($1,$2,$3,$4) 
           RETURNING id;`,
-        [songData[i].name, songData[i].playtime, songData[i].spotify_id]
+        [
+          songData[i].name,
+          songData[i].playtime,
+          songData[i].spotify_id,
+          songData[i].cover_image,
+        ]
       );
 
       // connecting this song to artist(s)
@@ -90,11 +95,11 @@ export async function createAlbums(albumData: any) {
 
       const newAlbum = await pool.query(
         `INSERT INTO albums
-          (name,total_playtime,track_count,artist_id,spotify_id) 
+          (name,total_playtime,track_count,artist_id,spotify_id,cover_image) 
           VALUES ($1,$2,$3,(
             SELECT id 
             FROM artists 
-            WHERE spotify_id = $4),$5)
+            WHERE spotify_id = $4),$5,$6)
             RETURNING id;`,
         [
           albumData[i].name,
@@ -102,6 +107,7 @@ export async function createAlbums(albumData: any) {
           albumData[i].track_count,
           albumData[i].artist.spotify_id,
           albumData[i].spotify_id,
+          albumData[i].cover_image,
         ]
       );
 
@@ -148,8 +154,8 @@ export async function createPlaylists(playlistData: any, user_id: any) {
 
       const newPlaylist = await pool.query(
         `INSERT INTO playlists
-          (name,total_playtime,track_count,spotify_id,owner_id) 
-          VALUES ($1,$2,$3,$4,$5)
+          (name,total_playtime,track_count,spotify_id,owner_id,cover_image) 
+          VALUES ($1,$2,$3,$4,$5,$6)
           RETURNING id;`,
         [
           playlistData[i].name,
@@ -157,6 +163,7 @@ export async function createPlaylists(playlistData: any, user_id: any) {
           playlistData[i].track_count,
           playlistData[i].spotify_id,
           user_id,
+          playlistData[i].cover_image,
         ]
       );
 

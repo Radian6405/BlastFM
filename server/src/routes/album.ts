@@ -146,7 +146,7 @@ router.get(
 
     try {
       const albums = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, jsonb_build_object('id',ar.id,'name',ar.name) as artist 
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist 
             FROM starred_albums sa 
             INNER JOIN albums a ON a.id = sa.album_id 
             INNER JOIN artists ar ON ar.id = a.artist_id 
@@ -181,7 +181,7 @@ router.get(
 
     try {
       const album = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
         INNER JOIN artists ar ON ar.id = a.artist_id 
         WHERE a.id = $1;`,
         [id]
@@ -228,15 +228,15 @@ router.get(
       }
 
       const albumSongs = await pool.query(
-        `SELECT q.id, q.name, q.playtime, q.artists
+        `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image
           FROM albums_songs als
           INNER JOIN
           (
-            SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
+            SELECT s.id, s.name, s.playtime, s.cover_image ,jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
             FROM songs s
             INNER JOIN artists_songs ars ON ars.song_id = s.id
             INNER JOIN artists a ON a.id = ars.artist_id
-            GROUP BY s.id,s.name,s.playtime
+            GROUP BY s.id,s.name,s.playtime, s.cover_image
           ) q ON q.id = als.song_id
           WHERE als.album_id = $1;`,
         [id]

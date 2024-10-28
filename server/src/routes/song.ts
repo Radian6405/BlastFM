@@ -139,13 +139,13 @@ router.get(
 
     try {
       const songs = await pool.query(
-        `SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists 
+        `SELECT s.id, s.name, s.playtime, s.cover_image,jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists 
           FROM liked_songs ls 
           INNER JOIN songs s ON s.id = ls.song_id 
           INNER JOIN artists_songs ars ON ars.song_id = s.id 
           INNER JOIN artists a ON a.id = ars.artist_id 
           WHERE ls.user_id = $1 
-          GROUP BY s.id,s.name,s.playtime
+          GROUP BY s.id,s.name,s.playtime, s.cover_image
         `,
         [req.user.id]
       );
@@ -170,12 +170,12 @@ router.get(
     const { id } = req.query;
     try {
       const songDetails = await pool.query(
-        `SELECT s.id, s.name, s.playtime, jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists
+        `SELECT s.id, s.name, s.playtime, s.cover_image, jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists
             FROM songs s
             INNER JOIN artists_songs ars ON ars.song_id = s.id
             INNER JOIN artists a ON a.id = ars.artist_id
             WHERE s.id = $1
-            GROUP BY s.id,s.name,s.playtime
+            GROUP BY s.id,s.name,s.playtime, s.cover_image
           `,
         [id]
       );

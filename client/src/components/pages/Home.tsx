@@ -41,7 +41,7 @@ function Home() {
               variant="outlined"
               disableElevation
               sx={{
-                backgroundColor: "rgba(var(--primary))",
+                borderColor: "rgba(var(--primary))",
                 borderRadius: 2,
                 textTransform: "capitalize",
                 color: "rgba(var(--text))",

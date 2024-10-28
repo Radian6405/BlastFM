@@ -27,6 +27,7 @@ export async function getUserSavedAlbums(access_token: string) {
       spotify_id: item.album.id,
       name: item.album.name,
       track_count: item.album.total_tracks,
+      cover_image: item.album.images[0].url,
       artist: {
         spotify_id: item.album.artists[0].id,
         name: item.album.artists[0].name,
@@ -36,6 +37,7 @@ export async function getUserSavedAlbums(access_token: string) {
         return {
           spotify_id: song.id,
           name: song.name,
+          cover_image: item.album.images[0].url,
           playtime: Math.round(song.duration_ms / 1000),
           artists: song.artists.map((artist: any) => {
             return {
@@ -82,7 +84,7 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
         ["market", "IN"],
         [
           "fields",
-          "items(track(name,id,duration_ms,artists(id,name),album(total_tracks,id,name,artists(id,name)))",
+          "items(track(name,id,duration_ms,artists(id,name),album(total_tracks,id,name,artists(id,name),images))",
         ],
         ["offset", `${j}`],
       ]).toString();
@@ -111,6 +113,7 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
       track_count: data.items[i].tracks.total,
       is_private: !data.items[i].public,
       total_playtime: Math.round(total_playtime / 1000),
+      cover_image: data.items[i].images[0].url,
       songs: songlist.map((item: any) => {
         return {
           artists: item.track.artists.map((i: any) => {
@@ -119,6 +122,7 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
           playtime: Math.round(item.track.duration_ms / 1000),
           name: item.track.name,
           spotify_id: item.track.id,
+          cover_image: item.track.album.images[0].url,
           // album: {
           //   artist: {
           //     name: item.track.album.artists[0].name,
@@ -157,7 +161,7 @@ export async function getUserLikedSongs(access_token: string) {
       }
     );
     // console.log(data.items[i].tracks.href + "?" + song_query);
-    if (!getSongs.ok) continue;
+    if (!getSongs.ok) return null;
     const songData = await getSongs.json();
     total = songData.total;
     songlist.push(...songData.items);
@@ -167,6 +171,7 @@ export async function getUserLikedSongs(access_token: string) {
     return {
       spotify_id: song.track.id,
       name: song.track.name,
+      cover_image: song.track.album.images[0].url,
       playtime: Math.round(song.track.duration_ms / 1000),
       artists: song.track.artists.map((artist: any) => {
         return { name: artist.name, spotify_id: artist.id };
