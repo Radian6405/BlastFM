@@ -1,3 +1,5 @@
+import { album, playlist, song } from "../../../types/interfaces";
+
 // gets and parses Saved albums of a user
 export async function getUserSavedAlbums(access_token: string) {
   const query: string = new URLSearchParams([
@@ -17,9 +19,9 @@ export async function getUserSavedAlbums(access_token: string) {
   if (!response.ok) return null;
   const data = await response.json();
 
-  const parsedData = data.items.map((item: any) => {
+  const parsedData: album[] = data.items.map((item: any) => {
     const total_playtime: number = item.album.tracks.items.reduce(
-      (sum: any, current: any) => sum + current.duration_ms,
+      (sum: number, current: any) => sum + current.duration_ms,
       0
     );
 
@@ -54,7 +56,10 @@ export async function getUserSavedAlbums(access_token: string) {
 }
 
 // gets and parses Saved playlists of a user
-export async function getUserPlaylists(access_token: string, user_id: string) {
+export async function getUserPlaylists(
+  access_token: string,
+  user_spotify_id: string
+) {
   const query: string = new URLSearchParams([["limit", "50"]]).toString();
 
   const response = await fetch(
@@ -69,13 +74,14 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
   if (!response.ok) return null;
   const data = await response.json();
 
-  let parsedData: any[] = [];
+  let parsedData: playlist[] = [];
 
   // for each playlist gets the songs
   for (let i = 0; i < data.total; i++) {
-    if (data.items[i].owner.id !== user_id) continue;
+    if (data.items[i].owner.id !== user_spotify_id) continue;
 
     // gets song data
+    // its of any type as its not parsed yet
     let songlist: any = [];
     for (let j = 0; j < data.items[i].tracks.total; j += 50) {
       const song_query: string = new URLSearchParams([
@@ -143,6 +149,7 @@ export async function getUserPlaylists(access_token: string, user_id: string) {
 // gets and parses liked songs of a user
 export async function getUserLikedSongs(access_token: string) {
   let total = 0;
+  // its of any type as its not parsed yet
   let songlist: any = [];
 
   // gets song data
@@ -167,7 +174,7 @@ export async function getUserLikedSongs(access_token: string) {
     songlist.push(...songData.items);
   }
 
-  const parsedData = songlist.map((song: any) => {
+  const parsedData: song[] = songlist.map((song: any) => {
     return {
       spotify_id: song.track.id,
       name: song.track.name,

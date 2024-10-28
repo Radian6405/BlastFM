@@ -1,7 +1,8 @@
 import pool from "../../../db";
+import { album, artist, playlist, song } from "../../../types/interfaces";
 
 // creates new artists
-export async function createArtists(artistData: any) {
+export async function createArtists(artistData: artist[]) {
   let artists: number = 0;
   for (let i = 0; i < artistData.length; i++) {
     try {
@@ -26,7 +27,7 @@ export async function createArtists(artistData: any) {
 }
 
 // creates new songs and connects it to its artists
-export async function createSongs(songData: any) {
+export async function createSongs(songData: song[]) {
   let songs: number = 0;
   for (let i = 0; i < songData.length; i++) {
     try {
@@ -58,7 +59,7 @@ export async function createSongs(songData: any) {
       // VALUES ($1, (SELECT id FROM artists WHERE spotify_id = $2)), ($1, (SELECT id FROM artists WHERE spotify_id = $3)), ....."
       const values = songData[i].artists
         .map(
-          (_: any, i: any) =>
+          (_: artist, i: number) =>
             `($1, (SELECT id FROM artists WHERE spotify_id = $${i + 2})) `
         )
         .join(", ");
@@ -67,7 +68,7 @@ export async function createSongs(songData: any) {
         `INSERT INTO artists_songs(song_id,artist_id) VALUES ${values}`,
         [
           newSong.rows[0].id,
-          ...songData[i].artists.map((artist: any) => artist.spotify_id),
+          ...songData[i].artists.map((artist: artist) => artist.spotify_id),
         ]
       );
 
@@ -82,7 +83,7 @@ export async function createSongs(songData: any) {
 }
 
 // creates new albums and connects it to its artists and songs
-export async function createAlbums(albumData: any) {
+export async function createAlbums(albumData: album[]) {
   let albums: number = 0;
   for (let i = 0; i < albumData.length; i++) {
     try {
@@ -117,8 +118,8 @@ export async function createAlbums(albumData: any) {
       // "INSERT INTO albums_songs(album_id,song_id)
       // VALUES ($1, (SELECT id FROM songs WHERE spotify_id = $2)), ($1, (SELECT id FROM songs WHERE spotify_id = $3)), ....."
       const values = albumData[i].songs
-        .map(
-          (_: any, i: any) =>
+        ?.map(
+          (_: song, i: number) =>
             `($1, (SELECT id FROM songs WHERE spotify_id = $${i + 2})) `
         )
         .join(", ");
@@ -127,7 +128,7 @@ export async function createAlbums(albumData: any) {
         `INSERT INTO albums_songs(album_id,song_id) VALUES ${values}`,
         [
           newAlbum.rows[0].id,
-          ...albumData[i].songs.map((song: any) => song.spotify_id),
+          ...(albumData[i].songs?.map((song: song) => song.spotify_id) ?? []),
         ]
       );
 
@@ -141,7 +142,10 @@ export async function createAlbums(albumData: any) {
 }
 
 // creates new playlists and connects it to its songs
-export async function createPlaylists(playlistData: any, user_id: any) {
+export async function createPlaylists(
+  playlistData: playlist[],
+  user_id: number
+) {
   let playlists: number = 0;
   for (let i = 0; i < playlistData.length; i++) {
     try {
@@ -173,6 +177,7 @@ export async function createPlaylists(playlistData: any, user_id: any) {
       // "INSERT INTO playlists_songs(playlist_id,song_id)
       // VALUES ($1, (SELECT id FROM songs WHERE spotify_id = $2)), ($1, (SELECT id FROM songs WHERE spotify_id = $3)), ....."
       const songs = playlistData[i].songs;
+      if (songs === undefined) return playlists; // never happens just to satisfy typescript
       const split_songs = [];
       const split_length = 10;
 
@@ -182,7 +187,7 @@ export async function createPlaylists(playlistData: any, user_id: any) {
       for (let j = 0; j < split_songs.length; j += 1) {
         const values = split_songs[j]
           .map(
-            (_: any, k: any) =>
+            (_: song, k: number) =>
               `($1, (SELECT id FROM songs WHERE spotify_id = $${k + 2}))`
           )
           .join(", ");
@@ -191,7 +196,7 @@ export async function createPlaylists(playlistData: any, user_id: any) {
           `INSERT INTO playlists_songs(playlist_id,song_id) VALUES ${values}`,
           [
             newPlaylist.rows[0].id,
-            ...split_songs[j].map((song: any) => song.spotify_id),
+            ...split_songs[j].map((song: song) => song.spotify_id),
           ]
         );
       }

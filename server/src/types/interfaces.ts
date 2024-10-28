@@ -1,12 +1,12 @@
 export interface artist {
-  id: number;
-  spotify_id?: string | null;
+  id?: number;
+  spotify_id?: string;
   name: string;
 }
 
 export interface song {
-  id: number;
-  spotify_id?: string | null;
+  id?: number;
+  spotify_id?: string;
   name: string;
   cover_image?: string;
   playtime: number;
@@ -14,25 +14,26 @@ export interface song {
 }
 
 export interface album {
-  id: number;
-  spotify_id?: string | null;
+  id?: number;
+  spotify_id?: string;
   name: string;
-  description?: string | null;
+  description?: string;
   track_count: number;
-  cover_image?: string | null;
+  cover_image?: string;
   artist: artist;
   total_playtime: number;
+  songs?: song[];
 }
 
 export interface playlist {
-  id: number;
-  spotify_id?: string | null;
+  id?: number;
+  spotify_id?: string;
   name: string;
-  description?: string | null;
+  description?: string;
   track_count: number;
   is_private: boolean;
   total_playtime: number;
-  cover_image?: string | null;
-  owner_id: number;
-  owner_username?: string | null;
+  cover_image?: string;
+  owner_id?: number;
+  songs?: song[];
 }

@@ -14,6 +14,7 @@ import {
   createAlbums,
   createPlaylists,
 } from "./helpers/create";
+import { album, artist, playlist, song } from "../../types/interfaces";
 
 const router: Router = Router();
 dotenv.config({ path: "../../../../.env" });
@@ -38,29 +39,29 @@ router.post(
     }
 
     // gets albums data
-    const data = await getUserSavedAlbums(String(access_token));
+    const data: album[] | null = await getUserSavedAlbums(String(access_token));
     if (data === null) {
       res.sendStatus(400);
       return;
     }
 
     // Step 1: creating songs
-    let artistList: any[] = [];
-    data.forEach((album: any) => {
-      album.songs.forEach((song: any) => {
+    let artistList: artist[] = [];
+    data.forEach((album: album) => {
+      album?.songs?.forEach((song: song) => {
         artistList.push(...song.artists);
       });
     });
     const songArtistssCreated = await createArtists(artistList);
-    let songList: any[] = [];
-    data.forEach((album: any) => {
-      songList.push(...album.songs);
+    let songList: song[] = [];
+    data.forEach((album: album) => {
+      songList.push(...(album?.songs ?? []));
     });
     const songsCreated = await createSongs(songList);
 
     // Step 2: creating albums
     const albumArtistsCreated = await createArtists(
-      data.map((album: any) => album.artist)
+      data.map((album: album) => album.artist)
     );
     const albumsCreated = await createAlbums(data);
 
@@ -103,7 +104,7 @@ router.post(
     }
 
     // gets user spotify id
-    const currentUser: any = await fetch("https://api.spotify.com/v1/me", {
+    const currentUser = await fetch("https://api.spotify.com/v1/me", {
       headers: {
         Authorization: "Bearer " + String(access_token),
       },
@@ -112,7 +113,10 @@ router.post(
     const userData = await currentUser.json();
 
     // gets albums data
-    const data = await getUserPlaylists(String(access_token), userData.id);
+    const data: playlist[] | null = await getUserPlaylists(
+      String(access_token),
+      userData.id
+    );
     if (data === null) {
       res.sendStatus(400);
       return;
@@ -120,12 +124,12 @@ router.post(
     // res.send(data);
 
     // Step 1: creating songs
-    let artist_list: any[] = [];
-    let song_list: any[] = [];
-    data.forEach((playlist: any) => {
-      song_list.push(...playlist.songs);
+    let artist_list: artist[] = [];
+    let song_list: song[] = [];
+    data.forEach((playlist: playlist) => {
+      song_list.push(...(playlist?.songs ?? []));
     });
-    song_list.forEach((song: any) => {
+    song_list.forEach((song: song) => {
       artist_list.push(...song.artists);
     });
     const artistsCreated = await createArtists(artist_list);
@@ -164,7 +168,7 @@ router.post(
     }
 
     // gets songs data
-    const data = await getUserLikedSongs(access_token);
+    const data: song[] | null = await getUserLikedSongs(access_token);
     if (data === null) {
       res.sendStatus(400);
       return;
@@ -172,8 +176,8 @@ router.post(
     // res.send(data);
 
     // Step 1: creating artists
-    let artist_list: any[] = [];
-    data.forEach((song: any) => {
+    let artist_list: artist[] = [];
+    data.forEach((song: song) => {
       artist_list.push(...song.artists);
     });
     const artistsCreated = await createArtists(artist_list);
