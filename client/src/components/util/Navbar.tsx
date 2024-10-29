@@ -14,6 +14,8 @@ import MenuItem from "@mui/material/MenuItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { user } from "../../util/interfaces";
+import { getAccessTokens, syncData } from "../../util/misc";
+import { useSnackbar } from "notistack";
 
 const pages = [
   { text: "Playlists", to: "/playlists" },
@@ -22,23 +24,52 @@ const pages = [
   { text: "My Listening", to: "/my-listening" },
 ];
 
-function Navbar({ user }: { user: user | null }) {
+function Navbar({
+  user,
+  theme,
+  setTheme,
+}: {
+  user: user | null;
+  theme: "light" | "dark";
+  setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">>;
+}) {
   const navigate = useNavigate();
-  const [, , removeCookie] = useCookies(["token"]);
+  const [cookie, setCookie, removeCookie] = useCookies([
+    "token",
+    "access_token",
+  ]);
+  const { enqueueSnackbar } = useSnackbar();
 
   const settings = [
     {
       text: "Logout",
       function: () => {
         removeCookie("token");
+        removeCookie("access_token");
         navigate("/logout");
-        console.log("logged out");
+        enqueueSnackbar("Logged out", { variant: "success" });
       },
     },
     {
       text: "Sync data",
+      function: async () => {
+        let access_token_data;
+        if (cookie.access_token === undefined) {
+          access_token_data = await getAccessTokens(cookie.token.token);
+          setCookie(
+            "access_token",
+            { access_token: access_token_data.access_token },
+            { maxAge: access_token_data.expires_in }
+          );
+        }
+        await syncData(access_token_data.access_token, cookie.token.token);
+        enqueueSnackbar("Synced data", { variant: "success" });
+      },
+    },
+    {
+      text: "Change theme",
       function: () => {
-        console.log("synced data");
+        setTheme(theme === "dark" ? "light" : "dark");
       },
     },
   ];
@@ -182,14 +213,21 @@ function Navbar({ user }: { user: user | null }) {
           }
 
           {user !== null && (
-            <Box sx={{ flexGrow: 0 }}>
+            <Box
+              sx={{
+                flexGrow: 0,
+                backgroundColor: "rgba(var(--background))",
+              }}
+            >
               <Tooltip title="User options">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar alt="" src="/static/images/avatar/2.jpg" />
                 </IconButton>
               </Tooltip>
               <Menu
-                sx={{ mt: "45px" }}
+                sx={{
+                  mt: "45px",
+                }}
                 id="menu-appbar"
                 anchorEl={anchorElUser}
                 anchorOrigin={{
@@ -211,7 +249,10 @@ function Navbar({ user }: { user: user | null }) {
                       setting.function();
                       handleCloseUserMenu();
                     }}
-                    sx={{ color: "rgba(var(--background))" }}
+                    sx={{
+                      color: "rgba(var(--text))",
+                      backgroundColor: "rgba(var(--background))",
+                    }}
                   >
                     <Typography sx={{ textAlign: "center" }}>
                       {setting.text}

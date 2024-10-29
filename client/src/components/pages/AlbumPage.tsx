@@ -20,7 +20,7 @@ function AlbumPage() {
     if (typeof id !== "string") return;
 
     const data: album | null | string = await getDetails(
-      cookie.token,
+      cookie.token.token,
       id,
       "album"
     );
@@ -30,7 +30,7 @@ function AlbumPage() {
   async function setAlbumSongsData() {
     if (typeof id !== "string") return;
     const data: song[] | null | string = await getSongs(
-      cookie.token,
+      cookie.token.token,
       id,
       "album"
     );

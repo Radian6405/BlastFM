@@ -13,7 +13,7 @@ function Playlists() {
 
   async function setPlaylistData() {
     const data: playlist[] | null | string = await getUserPlaylists(
-      cookie.token
+      cookie.token.token
     );
     if (typeof data !== "string" && data !== null) setPlaylist(data);
     else if (typeof data === "string") enqueueSnackbar(data);

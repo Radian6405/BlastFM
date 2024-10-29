@@ -12,7 +12,7 @@ function Songs() {
   const { enqueueSnackbar } = useSnackbar();
 
   async function setSongData() {
-    const data: song[] | null | string = await getUserLikedSongs(cookie.token);
+    const data: song[] | null | string = await getUserLikedSongs(cookie.token.token);
     if (typeof data !== "string" && data !== null) setSongs(data);
     else if (typeof data === "string") enqueueSnackbar(data);
   }

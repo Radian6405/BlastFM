@@ -12,7 +12,7 @@ function Albums() {
   const { enqueueSnackbar } = useSnackbar();
 
   async function setAlbumData() {
-    const data: album[] | null | string = await getUserAlbums(cookie.token);
+    const data: album[] | null | string = await getUserAlbums(cookie.token.token);
     if (typeof data !== "string" && data !== null) setAlbums(data);
     else if (typeof data === "string") enqueueSnackbar(data);
   }

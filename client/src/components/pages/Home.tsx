@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import { user } from "../../util/interfaces";
+import ConnectButton from "../util/ConnectButton";
 
 function Home({ user }: { user: user | null }) {
   return (
@@ -97,18 +98,7 @@ function PreConnect() {
         </div>
       </div>
       <div className="col-span-1 col-start-2 row-span-1 row-start-3 flex flex-row items-start justify-start gap-4 px-2 py-4">
-        <Button
-          variant="contained"
-          disableElevation
-          sx={{
-            backgroundColor: "green",
-            borderRadius: 2,
-            textTransform: "capitalize",
-            color: "rgba(var(--text))",
-          }}
-        >
-          <span className="mx-1 my-2 text-2xl">Connect</span>
-        </Button>
+        <ConnectButton />
       </div>
     </>
   );

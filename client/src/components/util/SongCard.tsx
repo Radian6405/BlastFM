@@ -46,7 +46,7 @@ function SongCard({ song }: { song: song }) {
         <div className="line-clamp-1 w-[30%] overflow-hidden text-lg text-text">
           {song.artists.map((artist: artist, i: number) => {
             return (
-              <span>
+              <span key={i}>
                 {artist.name}
                 {i !== song.artists.length - 1 && ", "}
               </span>

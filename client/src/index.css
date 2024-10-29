@@ -18,3 +18,8 @@
   --secondary: 158, 165, 229;
   --accent: 23, 54, 114;
 }
+
+.MuiMenu-root ul {
+  background-color: rgba(var(--background));
+  color: rgba(var(--text));
+}

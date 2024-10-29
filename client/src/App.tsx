@@ -35,7 +35,7 @@ const globalTheme = createTheme({
 });
 
 function App() {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [user, setUser] = useState<user | null>(null);
 
   const location = useLocation();
@@ -48,7 +48,8 @@ function App() {
   }, [theme]);
 
   async function setupUser() {
-    const data: user | null | string = await getUserData(cookie.token);
+    if (cookie.token === undefined) return;
+    const data: user | null | string = await getUserData(cookie.token.token);
     if (typeof data !== "string" && data !== null) setUser(data);
   }
 
@@ -66,7 +67,7 @@ function App() {
                 : "block"
             }
           >
-            <Navbar user={user} />
+            <Navbar user={user} theme={theme} setTheme={setTheme} />
           </div>
           <Routes>
             <Route path="/" element={<Home user={user} />} />

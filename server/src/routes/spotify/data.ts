@@ -80,7 +80,7 @@ router.post(
         song_updated: songsCreated,
         albums_connected: userAlbumConnections,
       });
-    else res.sendStatus(200);
+    else res.status(200).send({ message: "no updates" });
   }
 );
 
@@ -144,7 +144,7 @@ router.post(
         song_updated: songsCreated,
         playlists_updated: playlistsCreated,
       });
-    else res.sendStatus(200);
+    else res.status(200).send({ message: "no updates" });
   }
 );
 
@@ -194,7 +194,7 @@ router.post(
         songs_updated: songsCreated,
         songs_connected: userAlbumConnections,
       });
-    else res.sendStatus(200);
+    else res.status(200).send({ message: "no updates" });
   }
 );
 

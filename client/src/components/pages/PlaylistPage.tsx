@@ -21,7 +21,7 @@ function PlaylistPage() {
   async function setPlaylistData() {
     if (typeof id !== "string") return;
     const data: playlist | null | string = await getDetails(
-      cookie.token,
+      cookie.token.token,
       id,
       "playlist"
     );
@@ -31,7 +31,7 @@ function PlaylistPage() {
   async function setPlaylistSongsData() {
     if (typeof id !== "string") return;
     const data: song[] | null | string = await getSongs(
-      cookie.token,
+      cookie.token.token,
       id,
       "playlist"
     );

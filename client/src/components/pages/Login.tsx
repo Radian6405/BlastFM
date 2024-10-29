@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
+import { getAccessTokens } from "../../util/misc";
 
 function Login() {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -76,7 +77,7 @@ function SignInSide() {
   const [password, setPassword] = useState<string>("");
 
   const { enqueueSnackbar } = useSnackbar();
-  const [, setCookie] = useCookies(["token"]);
+  const [, setCookie] = useCookies(["token", "access_token"]);
   const navigate = useNavigate();
 
   async function SignIn() {
@@ -104,8 +105,14 @@ function SignInSide() {
       enqueueSnackbar(data.message, { variant: "error" });
       return;
     }
+    const access_token_data = await getAccessTokens(data.token);
 
-    setCookie("token", data.token, { maxAge: 60 * 60 * 24 });
+    setCookie("token", { token: data.token }, { maxAge: 60 * 60 * 24 });
+    setCookie(
+      "access_token",
+      { access_token: access_token_data.access_token },
+      { maxAge: access_token_data.expires_in }
+    );
     enqueueSnackbar(data.message, { variant: "success" });
     navigate("/");
   }
@@ -189,7 +196,7 @@ function SignUpSide() {
       return;
     }
 
-    setCookie("token", data.token, { maxAge: 60 * 60 * 24 });
+    setCookie("token", { token: data.token }, { maxAge: 60 * 60 * 24 });
     enqueueSnackbar(data.message, { variant: "success" });
     navigate("/");
   }

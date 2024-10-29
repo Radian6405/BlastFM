@@ -19,7 +19,7 @@ function SongPage() {
     if (typeof id !== "string") return;
 
     const data: song | null | string = await getDetails(
-      cookie.token,
+      cookie.token.token,
       id,
       "song"
     );
