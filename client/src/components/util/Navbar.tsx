@@ -12,6 +12,7 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import { Link, useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 const pages = [
   { text: "Playlists", to: "/playlists" },
@@ -22,10 +23,13 @@ const pages = [
 
 function Navbar() {
   const navigate = useNavigate();
+  const [, , removeCookie] = useCookies(["token"]);
+
   const settings = [
     {
       text: "Logout",
       function: () => {
+        removeCookie("token");
         navigate("/logout");
         console.log("logged out");
       },
@@ -193,6 +197,7 @@ function Navbar() {
                     setting.function();
                     handleCloseUserMenu();
                   }}
+                  sx={{ color: "rgba(var(--background))" }}
                 >
                   <Typography sx={{ textAlign: "center" }}>
                     {setting.text}
