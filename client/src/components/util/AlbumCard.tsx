@@ -1,7 +1,7 @@
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
-import { album } from "../../types/interfaces";
+import { album } from "../../util/interfaces";
 import { Link } from "react-router-dom";
 
 function AlbumCard({ album }: { album: album }) {
@@ -26,14 +26,14 @@ function AlbumCard({ album }: { album: album }) {
           },
         }}
       >
-        <div className="text-text my-4 flex flex-col items-start justify-between px-4">
-          <div className="text-text w-full overflow-hidden text-2xl hover:underline">
+        <div className="my-4 flex flex-col items-start justify-between px-4 text-text">
+          <div className="w-full overflow-hidden text-2xl text-text hover:underline">
             <Link to={"/album/" + String(album.id)}>{album.name}</Link>
           </div>
-          <div className="text-text/70 text-md overflow-hidden">
+          <div className="text-md overflow-hidden text-text/70">
             {album.track_count} tracks
           </div>
-          <div className="text-text/50 text-md overflow-hidden">
+          <div className="text-md overflow-hidden text-text/50">
             {album.total_playtime > 60
               ? Math.round(album.total_playtime / 60)
               : album.total_playtime}

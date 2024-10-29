@@ -1,5 +1,5 @@
 import { Card, CardMedia, CardContent } from "@mui/material";
-import { artist, song } from "../../types/interfaces";
+import { artist, song } from "../../util/interfaces";
 import { LikeButton, PlusIconButton } from "../util/Buttons";
 
 function SongPage() {
@@ -40,10 +40,10 @@ function SongPage() {
           </Card>
         </div>
         <div className="flex w-1/2 flex-col gap-8">
-          <div className="text-text text-start text-7xl font-bold">
+          <div className="text-start text-7xl font-bold text-text">
             {song.name}
           </div>
-          <div className="text-text text-start text-3xl">
+          <div className="text-start text-3xl text-text">
             {song.artists.map((artist: artist, i) => {
               return (
                 <span>
@@ -53,7 +53,7 @@ function SongPage() {
               );
             })}
           </div>
-          <div className="text-text text-start text-5xl">
+          <div className="text-start text-5xl text-text">
             {Math.floor(song.playtime / 60)}:{song.playtime % 60}
           </div>
         </div>

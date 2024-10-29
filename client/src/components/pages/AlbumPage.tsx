@@ -1,5 +1,5 @@
 import { Card, CardMedia, CardContent } from "@mui/material";
-import { album, song } from "../../types/interfaces";
+import { album, song } from "../../util/interfaces";
 import { StarButton } from "../util/Buttons";
 import SongCard from "../util/SongCard";
 
@@ -45,10 +45,10 @@ function AlbumPage() {
               image="https://media.tenor.com/f4PUj7wUIm4AAAAe/cat-tongue.png"
             />
             <CardContent sx={{ backgroundColor: "rgba(var(--background))" }}>
-              <div className="text-text text-start text-6xl font-bold">
+              <div className="text-start text-6xl font-bold text-text">
                 {album.name}
               </div>
-              <div className="text-text text-start text-2xl">
+              <div className="text-start text-2xl text-text">
                 {album.artist.name}
               </div>
               <div className="my-4 flex flex-row justify-start gap-4 px-2">

@@ -1,4 +1,4 @@
-import { playlist } from "../../types/interfaces";
+import { playlist } from "../../util/interfaces";
 import PlaylistCard, { CreatePlaylistCard } from "../util/PlaylistCard";
 
 function Playlists() {

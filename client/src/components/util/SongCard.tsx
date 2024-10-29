@@ -1,6 +1,6 @@
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
-import { artist, song } from "../../types/interfaces";
+import { artist, song } from "../../util/interfaces";
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import { LikeButton, MoreButton } from "./Buttons";
@@ -42,7 +42,7 @@ function SongCard({ song }: { song: song }) {
         <div className="line-clamp-1 w-[40%] cursor-pointer overflow-hidden px-4 text-2xl hover:underline ">
           <Link to={"/song/" + String(song.id)}>{song.name}</Link>
         </div>
-        <div className="text-text line-clamp-1 w-[30%] overflow-hidden text-lg">
+        <div className="line-clamp-1 w-[30%] overflow-hidden text-lg text-text">
           {song.artists.map((artist: artist, i: number) => {
             return (
               <span>
@@ -52,7 +52,7 @@ function SongCard({ song }: { song: song }) {
             );
           })}
         </div>
-        <div className="text-text flex w-[30%] items-center justify-end gap-3 pr-4 ">
+        <div className="flex w-[30%] items-center justify-end gap-3 pr-4 text-text ">
           <LikeButton tooltip="like" />
           <span className="text-right">
             {Math.floor(song.playtime / 60)}:{song.playtime % 60}

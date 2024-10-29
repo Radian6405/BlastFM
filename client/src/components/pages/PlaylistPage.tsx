@@ -1,7 +1,7 @@
 // import { useParams } from "react-router-dom";
 
 import { Card, CardMedia, CardContent } from "@mui/material";
-import { playlist, song } from "../../types/interfaces";
+import { playlist, song } from "../../util/interfaces";
 import SongCard from "../util/SongCard";
 import { PlusIconButton, TrashIconButton } from "../util/Buttons";
 
@@ -46,13 +46,13 @@ function PlaylistPage() {
               image="https://media.tenor.com/f4PUj7wUIm4AAAAe/cat-tongue.png"
             />
             <CardContent sx={{ backgroundColor: "rgba(var(--background))" }}>
-              <div className="text-text text-start text-6xl font-bold">
+              <div className="text-start text-6xl font-bold text-text">
                 {playlist.name}
               </div>
-              <div className="text-text text-start text-2xl">
+              <div className="text-start text-2xl text-text">
                 {playlist.owner_username}
               </div>
-              <div className="my-4 flex flex-row justify-start px-2 gap-4">
+              <div className="my-4 flex flex-row justify-start gap-4 px-2">
                 <PlusIconButton tooltip="Add song" />
                 <TrashIconButton tooltip={"Delete" + " playlist"} />
               </div>

@@ -1,4 +1,4 @@
-import { song } from "../../types/interfaces";
+import { song } from "../../util/interfaces";
 import SongCard from "../util/SongCard";
 
 function Songs() {

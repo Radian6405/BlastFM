@@ -1,4 +1,4 @@
-import { album } from "../../types/interfaces";
+import { album } from "../../util/interfaces";
 import AlbumCard from "../util/AlbumCard";
 
 function Albums() {

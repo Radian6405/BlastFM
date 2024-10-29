@@ -1,7 +1,7 @@
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
-import { playlist } from "../../types/interfaces";
+import { playlist } from "../../util/interfaces";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import React, { ReactNode, useState } from "react";
 import {
@@ -36,14 +36,14 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
           },
         }}
       >
-        <div className="text-text my-4 flex flex-col items-start justify-between px-4">
-          <div className="text-text w-full cursor-pointer overflow-hidden text-2xl font-bold hover:underline">
+        <div className="my-4 flex flex-col items-start justify-between px-4 text-text">
+          <div className="w-full cursor-pointer overflow-hidden text-2xl font-bold text-text hover:underline">
             <Link to={"/playlist/" + String(playlist.id)}>{playlist.name}</Link>
           </div>
-          <div className="text-text/70 overflow-hidden text-lg">
+          <div className="overflow-hidden text-lg text-text/70">
             {playlist.track_count} tracks
           </div>
-          <div className="text-text/50 text-md overflow-hidden">
+          <div className="text-md overflow-hidden text-text/50">
             {playlist.total_playtime > 60
               ? Math.round(playlist.total_playtime / 60)
               : playlist.total_playtime}
@@ -66,7 +66,7 @@ export function CreatePlaylistCard() {
           cursor: "pointer",
         }}
       >
-        <div className="text-text flex size-[300px] items-center justify-center">
+        <div className="flex size-[300px] items-center justify-center text-text">
           <CreatePlaylistDialog>
             <AddCircleIcon sx={{ fontSize: 96 }} />
           </CreatePlaylistDialog>
@@ -116,20 +116,20 @@ export function CreatePlaylistDialog({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center justify-center py-4">
             <div className="grid h-56 w-[35rem] grid-cols-5 grid-rows-4 gap-2 ">
-              <div className="bg-light-background col-span-2 row-span-4 flex cursor-pointer flex-col items-center justify-center">
+              <div className="col-span-2 row-span-4 flex cursor-pointer flex-col items-center justify-center bg-light-background">
                 <CreateIcon sx={{ fontSize: 64 }} />
                 <div className="text-xl">Upload a photo</div>
               </div>
               <div className="col-span-3 row-span-1">
                 <input
                   type="text"
-                  className="bg-light-background h-full w-full px-2 text-xl"
+                  className="h-full w-full bg-light-background px-2 text-xl"
                   placeholder="Enter a Name"
                 />
               </div>
               <div className="col-span-3 row-span-3">
                 <textarea
-                  className="bg-light-background h-full w-full p-2 text-xl"
+                  className="h-full w-full bg-light-background p-2 text-xl"
                   placeholder="Add an optional description"
                 />
               </div>
