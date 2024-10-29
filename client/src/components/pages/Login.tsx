@@ -106,6 +106,10 @@ function SignInSide() {
       return;
     }
     const access_token_data = await getAccessTokens(data.token);
+    if (access_token_data === null) {
+      enqueueSnackbar("Could not log in", { variant: "error" });
+      return;
+    }
 
     setCookie("token", { token: data.token }, { maxAge: 60 * 60 * 24 });
     setCookie(
