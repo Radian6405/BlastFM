@@ -1,3 +1,10 @@
+export interface user {
+  id: Number;
+  username: string;
+  email: string;
+  is_spotify_connected: boolean;
+}
+
 export interface artist {
   id: number;
   spotify_id?: string | null;

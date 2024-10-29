@@ -15,7 +15,7 @@ function AlbumCard({ album }: { album: album }) {
     >
       <CardMedia
         sx={{ height: 300, width: 300 }}
-        image="https://media.tenor.com/hVTGSfNmQhcAAAAM/ivehadituptoherewithyou-think-fast.gif"
+        image={album?.cover_image ?? ""} //TODO: add placeholders
         title={album.name}
       />
       <CardContent
@@ -27,7 +27,7 @@ function AlbumCard({ album }: { album: album }) {
         }}
       >
         <div className="my-4 flex flex-col items-start justify-between px-4 text-text">
-          <div className="w-full overflow-hidden text-2xl text-text hover:underline">
+          <div className="line-clamp-2 w-full overflow-hidden text-2xl text-text hover:underline">
             <Link to={"/album/" + String(album.id)}>{album.name}</Link>
           </div>
           <div className="text-md overflow-hidden text-text/70">

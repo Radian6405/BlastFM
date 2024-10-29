@@ -25,7 +25,7 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
     >
       <CardMedia
         sx={{ height: 300, width: 300 }}
-        image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRx_i7mL7PZuJ7cFSnOr0zEmL0kDdkUgM26eA&s"
+        image={playlist?.cover_image ?? ""} //TODO: add placeholders
         title={playlist.name}
       />
       <CardContent
@@ -37,7 +37,7 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
         }}
       >
         <div className="my-4 flex flex-col items-start justify-between px-4 text-text">
-          <div className="w-full cursor-pointer overflow-hidden text-2xl font-bold text-text hover:underline">
+          <div className="line-clamp-2 w-full cursor-pointer overflow-hidden text-2xl font-bold text-text hover:underline">
             <Link to={"/playlist/" + String(playlist.id)}>{playlist.name}</Link>
           </div>
           <div className="overflow-hidden text-lg text-text/70">

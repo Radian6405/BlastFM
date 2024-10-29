@@ -1,47 +1,39 @@
+import { useSnackbar } from "notistack";
+import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
+import { getUserLikedSongs } from "../../util/getData";
 import { song } from "../../util/interfaces";
 import SongCard from "../util/SongCard";
+import LoadingCard from "../util/LoadingCard";
 
 function Songs() {
-  const testSong1: song = {
-    id: 1442,
-    name: "Wannabe",
-    playtime: 217,
-    artists: [
-      {
-        id: 1319,
-        name: "why mona",
-      },
-    ],
-  };
-  const testSong2: song = {
-    id: 1436,
-    name: "death bed (coffee for your head)",
-    playtime: 173,
-    artists: [
-      {
-        id: 1314,
-        name: "Powfu",
-      },
-      {
-        id: 1314,
-        name: "Powfu",
-      },
-      {
-        id: 1315,
-        name: "beabadoobee",
-      },
-    ],
-  };
+  const [songs, setSongs] = useState<song[] | null>(null);
+  const [cookie] = useCookies(["token"]);
+  const { enqueueSnackbar } = useSnackbar();
+
+  async function setSongData() {
+    const data: song[] | null | string = await getUserLikedSongs(cookie.token);
+    if (typeof data !== "string" && data !== null) setSongs(data);
+    else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
+  useEffect(() => {
+    setSongData();
+  }, []);
   return (
     <>
       <div className="flex flex-col items-start justify-start gap-4 p-12">
         <div className="px-4 text-6xl">Liked Songs</div>
         <div className="flex flex-wrap gap-5">
-          <SongCard song={testSong1} />
-          <SongCard song={testSong2} />
-          <SongCard song={testSong1} />
-          <SongCard song={testSong2} />
-          <SongCard song={testSong1} />
+          {songs === null ? (
+            <LoadingCard />
+          ) : (
+            <>
+              {songs.map((song, i) => {
+                return <SongCard key={i} song={song} />;
+              })}
+            </>
+          )}
         </div>
       </div>
     </>

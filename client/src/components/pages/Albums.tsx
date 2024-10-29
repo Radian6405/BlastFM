@@ -1,41 +1,39 @@
+import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
+import { getUserAlbums } from "../../util/getData";
 import { album } from "../../util/interfaces";
+import { useSnackbar } from "notistack";
+import LoadingCard from "../util/LoadingCard";
 import AlbumCard from "../util/AlbumCard";
 
 function Albums() {
-  const testAlbum1: album = {
-    id: 26,
-    name: "Sick Boy",
-    description: null,
-    cover_image: null,
-    total_playtime: 1970,
-    track_count: 10,
-    artist: {
-      id: 1302,
-      name: "The Chainsmokers",
-    },
-  };
-  const testAlbum2: album = {
-    id: 29,
-    name: "Elsewhere",
-    description: null,
-    cover_image: null,
-    total_playtime: 2891,
-    track_count: 16,
-    artist: {
-      id: 1459,
-      name: "Set It Off",
-    },
-  };
+  const [albums, setAlbums] = useState<album[] | null>(null);
+  const [cookie] = useCookies(["token"]);
+  const { enqueueSnackbar } = useSnackbar();
+
+  async function setAlbumData() {
+    const data: album[] | null | string = await getUserAlbums(cookie.token);
+    if (typeof data !== "string" && data !== null) setAlbums(data);
+    else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
+  useEffect(() => {
+    setAlbumData();
+  }, []);
   return (
     <>
       <div className="flex flex-col items-start justify-start gap-4 p-12">
         <div className="px-4 text-6xl">Saved Albums</div>
         <div className="flex flex-wrap gap-5">
-          <AlbumCard album={testAlbum1} />
-          <AlbumCard album={testAlbum2} />
-          <AlbumCard album={testAlbum1} />
-          <AlbumCard album={testAlbum2} />
-          <AlbumCard album={testAlbum1} />
+          {albums === null ? (
+            <LoadingCard />
+          ) : (
+            <>
+              {albums.map((album, i) => {
+                return <AlbumCard key={i} album={album} />;
+              })}
+            </>
+          )}
         </div>
       </div>
     </>

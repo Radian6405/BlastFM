@@ -4,6 +4,7 @@ import { artist, song } from "../../util/interfaces";
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import { LikeButton, MoreButton } from "./Buttons";
+import { getFormatedTime } from "../../util/misc";
 
 function SongCard({ song }: { song: song }) {
   return (
@@ -28,7 +29,7 @@ function SongCard({ song }: { song: song }) {
       </div> */}
       <CardMedia
         sx={{ height: 60, width: 60 }}
-        image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXx2xFk_wEb1hLQoDo4Ar3YbhosCPyOCfOgA&s"
+        image={song?.cover_image ?? ""} //TODO: add placeholders
         title={song.name}
       />
       <Box
@@ -54,9 +55,7 @@ function SongCard({ song }: { song: song }) {
         </div>
         <div className="flex w-[30%] items-center justify-end gap-3 pr-4 text-text ">
           <LikeButton tooltip="like" />
-          <span className="text-right">
-            {Math.floor(song.playtime / 60)}:{song.playtime % 60}
-          </span>
+          <span className="text-right">{getFormatedTime(song.playtime)}</span>
           <MoreButton tooltip="More options" />
         </div>
       </Box>

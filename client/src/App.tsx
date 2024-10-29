@@ -15,6 +15,9 @@ import AlbumPage from "./components/pages/AlbumPage";
 import SongPage from "./components/pages/SongPage";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { SnackbarProvider } from "notistack";
+import { getUserData } from "./util/getData";
+import { user } from "./util/interfaces";
+import { useCookies } from "react-cookie";
 
 const globalTheme = createTheme({
   palette: {
@@ -32,14 +35,26 @@ const globalTheme = createTheme({
 });
 
 function App() {
-  const location = useLocation();
   const [theme, setTheme] = useState("dark");
+  const [user, setUser] = useState<user | null>(null);
+
+  const location = useLocation();
+  const [cookie] = useCookies(["token"]);
 
   useEffect(() => {
     document.body.className = theme;
     document.body.style.backgroundColor = "rgba(var(--background))";
     document.body.style.color = "rgba(var(--text))";
   }, [theme]);
+
+  async function setupUser() {
+    const data: user | null | string = await getUserData(cookie.token);
+    if (typeof data !== "string" && data !== null) setUser(data);
+  }
+
+  useEffect(() => {
+    setupUser();
+  }, [, cookie]);
   return (
     <>
       <SnackbarProvider maxSnack={3} preventDuplicate autoHideDuration={3000}>
@@ -51,10 +66,10 @@ function App() {
                 : "block"
             }
           >
-            <Navbar />
+            <Navbar user={user} />
           </div>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home user={user} />} />
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/albums" element={<Albums />} />
             <Route path="/songs" element={<Songs />} />

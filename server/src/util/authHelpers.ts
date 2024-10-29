@@ -45,7 +45,14 @@ export function aucthenticateJWT(req: Request, res: Response, next: Function) {
       let findUser;
       try {
         findUser = await pool.query(
-          "SELECT id, username, email FROM users WHERE id = $1",
+          `SELECT id, username, email, 
+          CASE 
+            WHEN spotify_refresh_token IS NOT NULL 
+              THEN TRUE 
+              ELSE FALSE 
+            END AS is_spotify_connected 
+          FROM users 
+          WHERE id = $1`,
           [data.id]
         );
       } catch (error) {
