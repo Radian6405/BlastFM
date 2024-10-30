@@ -1,7 +1,7 @@
 
 services:
   dev-sever:
-    image: blastfm-sever:1.0
+    image: blastfm-sever:1.1
     build: 
       context: ./server
       dockerfile: Dockerfile
@@ -15,7 +15,7 @@ services:
       - blastfm-server-node-modules-v:/server/node_modules
     depends_on:
       dev-database:
-        condition: service_healthy    
+          condition: service_healthy  
 
   dev-database:
     image: blastfm-database:1.1
@@ -29,6 +29,9 @@ services:
     volumes:
       - blastfm-database-v:/var/lib/postgresql/data
     command: "-p ${POSTGRES_PORT}"
+    depends_on:
+      dev-cache:
+          condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       start_period: 0s
@@ -36,8 +39,28 @@ services:
       timeout: 5s
       retries: 5
 
+  dev-cache:
+    image: blastfm-cache:1.0
+    build:
+      context: ./cache
+      dockerfile: Dockerfile
+    hostname: ${REDIS_HOST}
+    ports:
+      - "${REDIS_PORT}:6379"
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p ${REDIS_PORT} ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
 volumes:
   blastfm-server-node-modules-v:
     name: "blastfm-server-node-modules-v"
   blastfm-database-v:
     name: "blastfm-database-v"
+
+
+# docker-compose --env-file .env up
+# docker exec -it blastfm-dev-database-1 psql -U admin -W blastfm -p 5000
+# docker exec -it blast-fm-dev-cache-1 redis-cli
