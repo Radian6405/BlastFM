@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { aucthenticateJWT } from "../../util/authHelpers";
 import dotenv from "dotenv";
 import pool from "../../db";
+import redis from "../../cache";
 
 const router: Router = Router();
 dotenv.config({ path: "../../../../.env" });
@@ -102,7 +103,15 @@ router.patch(
     // adding refresh token to database
     try {
       const updatedUser = await pool.query(
-        "UPDATE users SET spotify_refresh_token = $1 WHERE id = $2",
+        `UPDATE users 
+        SET spotify_refresh_token = $1 
+        WHERE id = $2 
+        RETURNING id, username, email, 
+          CASE 
+            WHEN spotify_refresh_token IS NOT NULL 
+              THEN TRUE 
+              ELSE FALSE 
+            END AS is_spotify_connected`,
         [data.refresh_token, req.user.id]
       );
 
@@ -110,6 +119,14 @@ router.patch(
         res.status(400).send("could not update the user data");
         return;
       }
+
+      const updateUserCache = await redis.HSET(
+        "USERS",
+        String(updatedUser.rows[0].id),
+        JSON.stringify(updatedUser.rows[0])
+      );
+      await redis.EXPIRE("USERS", 60 * 60 * 24, "NX");
+      // console.log("Updated", updateUserCache);
 
       res.status(200).send(data);
     } catch (error) {
@@ -133,16 +150,20 @@ router.get(
     }
 
     try {
-      const user = await pool.query("SELECT * FROM users WHERE id = $1;", [
-        req.user.id,
-      ]);
-      if (
-        Number(user.rowCount) === 0 ||
-        user.rows[0].spotify_refresh_token === null
-      ) {
+      // getting refresh token
+      const user = await pool.query(
+        "SELECT spotify_refresh_token FROM users WHERE id = $1;",
+        [req.user.id]
+      );
+      if (Number(user.rowCount) === 0) {
         res.status(400).send({
           message: "Could not get access token",
         });
+        return;
+      }
+
+      if (user.rows[0].spotify_refresh_token === null) {
+        res.status(404).send({ message: "Spotify is not connected" });
         return;
       }
 

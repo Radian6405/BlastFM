@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
+import redis from "../cache";
 const router: Router = Router();
 
 // to CREATE a playlist
@@ -183,8 +184,34 @@ router.get(
         "SELECT * FROM playlists WHERE id = $1;",
         [id]
       );
-      const playlistSongs = await pool.query(
-        `SELECT s.id, s.name, s.playtime, s.cover_image, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
+      if (Number(playlist.rowCount) === 0) {
+        res.status(400).send({
+          message: "Could not read playlist songs",
+        });
+        return;
+      }
+
+      // cache check
+      const check = await redis.HGET("PLAYLIST_SONGS", String(id));
+
+      if (check != null) {
+        // cache hit
+
+        // for private playlists checking for ownership
+        if (playlist.rows[0].is_private) {
+          if (req.user !== null && req.user.id === playlist.rows[0].owner_id)
+            res.status(200).send({ songs: JSON.parse(check) });
+          else
+            res
+              .status(401)
+              .send({ message: "This playlist is set to private" });
+        }
+        // public playlists have no ownership check
+        else res.status(200).send({ songs: JSON.parse(check) });
+      } else {
+        // cache miss
+        const playlistSongs = await pool.query(
+          `SELECT s.id, s.name, s.playtime, s.cover_image, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
         FROM playlists_songs ps 
         INNER JOIN songs s ON s.id = ps.song_id 
         INNER JOIN artists_songs ars ON ars.song_id = s.id 
@@ -192,25 +219,34 @@ router.get(
         WHERE playlist_id = $1 
         GROUP BY s.id,s.name,s.playtime, s.cover_image
         `,
-        [id]
-      );
+          [id]
+        );
 
-      if (Number(playlist.rowCount) > 0) {
         // for private playlists checking for ownership
         if (playlist.rows[0].is_private) {
-          if (req.user !== null && req.user.id === playlist.rows[0].owner_id)
+          if (req.user !== null && req.user.id === playlist.rows[0].owner_id) {
             res.status(200).send({ songs: playlistSongs.rows });
-          else
+            await redis.HSET(
+              "PLAYLIST_SONGS",
+              String(id),
+              JSON.stringify(playlistSongs.rows)
+            );
+            await redis.EXPIRE("PLAYLIST_SONGS", 60 * 60 * 24, "NX");
+          } else
             res
               .status(401)
               .send({ message: "This playlist is set to private" });
         }
         // public playlists have no ownership check
-        else res.status(200).send({ songs: playlistSongs.rows });
-      } else {
-        res.status(400).send({
-          message: "Could not read playlist songs",
-        });
+        else {
+          res.status(200).send({ songs: playlistSongs.rows });
+          await redis.HSET(
+            "PLAYLIST_SONGS",
+            String(id),
+            JSON.stringify(playlistSongs.rows)
+          );
+          await redis.EXPIRE("PLAYLIST_SONGS", 60 * 60 * 24, "NX");
+        }
       }
     } catch (error) {
       console.log("Error at GET /playlist/songlist route:\n", error);
@@ -318,6 +354,7 @@ router.post(
         );
 
         res.sendStatus(201);
+        redis.HDEL("PLAYLIST_SONGS", String(playlist_id));
       } else
         res.status(400).send({
           message: "Could not add song to the playlist",
@@ -401,6 +438,7 @@ router.delete(
           [song_id, playlist_id]
         );
         res.sendStatus(200);
+        redis.HDEL("PLAYLIST_SONGS", String(playlist_id));
       } else
         res.status(400).send({
           message: "Could not delete song from the playlist",

@@ -5,6 +5,7 @@ declare global {
         id: number;
         username: string;
         email: string;
+        is_spotify_connected: boolean;
       } | null;
     }
   }

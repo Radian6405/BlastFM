@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
+import redis from "../cache";
 const router: Router = Router();
 
 // to ADD song to liked songs
@@ -53,8 +54,10 @@ router.post(
         "INSERT INTO liked_songs(user_id,song_id) VALUES($1,$2);",
         [req.user?.id, id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(201);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        res.sendStatus(201);
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
+      } else
         res.status(400).send({
           message: "Could not like the song",
         });
@@ -114,8 +117,10 @@ router.delete(
         "DELETE FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
         [req.user?.id, id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(200);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        res.sendStatus(200);
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
+      } else
         res.status(400).send({
           message: "Could not remove the liked song",
         });
@@ -137,28 +142,51 @@ router.get(
       return;
     }
 
-    try {
-      const songs = await pool.query(
-        `SELECT s.id, s.name, s.playtime, s.cover_image,jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists 
+    // cache check
+    const check = await redis.HGET("LIKED_SONGS", String(req.user.id));
+    // console.log("songlist check:", check !== null);
+
+    if (check != null) {
+      // cache hit
+      res.status(200).send({ songs: JSON.parse(check) });
+    } else {
+      // cache miss
+      let songsData;
+      try {
+        songsData = await pool.query(
+          `SELECT s.id, s.name, s.playtime, s.cover_image,jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists 
           FROM liked_songs ls 
           INNER JOIN songs s ON s.id = ls.song_id 
           INNER JOIN artists_songs ars ON ars.song_id = s.id 
           INNER JOIN artists a ON a.id = ars.artist_id 
           WHERE ls.user_id = $1 
           GROUP BY s.id,s.name,s.playtime, s.cover_image
-        `,
-        [req.user.id]
-      );
+          `,
+          [req.user.id]
+        );
 
-      if (Number(songs.rowCount) > 0)
-        res.status(200).send({ songs: songs.rows });
-      else
-        res.status(400).send({
-          message: "Could not get liked songs list",
-        });
-    } catch (error) {
-      console.log("Error at GET /song/liked route:\n", error);
-      res.sendStatus(500);
+        if (Number(songsData.rowCount) > 0)
+          res.status(200).send({ songs: songsData.rows });
+        else {
+          res.status(400).send({
+            message: "Could not get liked songs list",
+          });
+          return;
+        }
+      } catch (error) {
+        console.log("Error at GET /song/liked route:\n", error);
+        res.sendStatus(500);
+      }
+
+      // cache data
+      const updateSongs = await redis.HSET(
+        "LIKED_SONGS",
+        String(req.user.id),
+        JSON.stringify(songsData?.rows)
+      );
+      await redis.EXPIRE("LIKED_SONGS", 60 * 60 * 24, "NX");
+
+      // console.log("updated songs list:", updateSongs);
     }
   }
 );

@@ -3,6 +3,7 @@ import { Router, Request, Response } from "express";
 import dotenv from "dotenv";
 import pool from "../db";
 import jwt, { Secret } from "jsonwebtoken";
+import redis from "../cache";
 
 dotenv.config({ path: "../../../.env" });
 const saltRounds: number = 10;
@@ -39,39 +40,54 @@ export function aucthenticateJWT(req: Request, res: Response, next: Function) {
       if (err) {
         req.user = null;
         next();
-        return;
       }
 
       let findUser;
       try {
-        findUser = await pool.query(
-          `SELECT id, username, email, 
-          CASE 
-            WHEN spotify_refresh_token IS NOT NULL 
-              THEN TRUE 
-              ELSE FALSE 
-            END AS is_spotify_connected 
-          FROM users 
-          WHERE id = $1`,
-          [data.id]
-        );
+        // check cache
+        const check = await redis.HGET("USERS", String(data.id));
+
+        // console.log("Check:", check);
+        if (check != null) {
+          // cache hit case
+          req.user = JSON.parse(check);
+          next();
+        } else {
+          // cache miss case
+          findUser = await pool.query(
+            `SELECT id, username, email, 
+            CASE 
+              WHEN spotify_refresh_token IS NOT NULL 
+                THEN TRUE 
+                ELSE FALSE 
+              END AS is_spotify_connected 
+            FROM users 
+            WHERE id = $1`,
+            [data.id]
+          );
+          //no user found
+          if (Number(findUser.rowCount) === 0) {
+            req.user = null;
+            next();
+          }
+          // user found
+          req.user = { ...findUser.rows[0] };
+          // updating cache
+          const updateUser = await redis.HSET(
+            "USERS",
+            String(data.id),
+            JSON.stringify(findUser.rows[0])
+          );
+          await redis.EXPIRE("USERS", 60 * 60 * 24, "NX");
+
+          // console.log("Updated", updateUser);
+          next();
+        }
       } catch (error) {
         console.log("Error at jwt authentication step:\n", error);
         req.user = null;
         next();
-        return;
       }
-
-      //no user found
-      if (Number(findUser.rowCount) === 0) {
-        req.user = null;
-        next();
-        return;
-      }
-
-      // user found
-      req.user = { ...findUser.rows[0] };
-      next();
     }
   );
 }
