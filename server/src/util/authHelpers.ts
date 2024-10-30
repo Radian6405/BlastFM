@@ -48,7 +48,7 @@ export function aucthenticateJWT(req: Request, res: Response, next: Function) {
         const check = await redis.HGET("USERS", String(data.id));
 
         // console.log("Check:", check);
-        if (check !== null && check !== undefined) {
+        if (check != null) {
           // cache hit case
           req.user = JSON.parse(check);
           next();

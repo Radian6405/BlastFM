@@ -32,3 +32,17 @@ VALUE:{
     }[];
 }[]
 ```
+
+- for playlist's songs
+```
+KEY : PLAYLIST_SONGS
+FIELD: (playlist_id)
+VALUE: <same as before>
+```
+
+- for album's songs
+```
+KEY : ALBUM_SONGS
+FIELD: (album_id)
+VALUE: <same as before>
+```

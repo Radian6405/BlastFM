@@ -54,8 +54,10 @@ router.post(
         "INSERT INTO liked_songs(user_id,song_id) VALUES($1,$2);",
         [req.user?.id, id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(201);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        res.sendStatus(201);
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
+      } else
         res.status(400).send({
           message: "Could not like the song",
         });
@@ -115,8 +117,10 @@ router.delete(
         "DELETE FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
         [req.user?.id, id]
       );
-      if (Number(newRelation.rowCount) > 0) res.sendStatus(200);
-      else
+      if (Number(newRelation.rowCount) > 0) {
+        res.sendStatus(200);
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
+      } else
         res.status(400).send({
           message: "Could not remove the liked song",
         });
@@ -142,7 +146,7 @@ router.get(
     const check = await redis.HGET("LIKED_SONGS", String(req.user.id));
     // console.log("songlist check:", check !== null);
 
-    if (check !== null && check !== undefined) {
+    if (check != null) {
       // cache hit
       res.status(200).send({ songs: JSON.parse(check) });
     } else {

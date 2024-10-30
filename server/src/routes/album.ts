@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
+import redis from "../cache";
 const router: Router = Router();
 
 // to ADD album to starred albums
@@ -227,8 +228,16 @@ router.get(
         return;
       }
 
-      const albumSongs = await pool.query(
-        `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image
+      // cache check
+      const check = await redis.HGET("ALBUM_SONGS", String(id));
+
+      if (check != null) {
+        // cache hit
+        res.status(200).send({ songs: JSON.parse(check) });
+      } else {
+        // cache miss
+        const albumSongs = await pool.query(
+          `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image
           FROM albums_songs als
           INNER JOIN
           (
@@ -239,10 +248,17 @@ router.get(
             GROUP BY s.id,s.name,s.playtime, s.cover_image
           ) q ON q.id = als.song_id
           WHERE als.album_id = $1;`,
-        [id]
-      );
+          [id]
+        );
 
-      res.status(200).send({ songs: albumSongs.rows });
+        res.status(200).send({ songs: albumSongs.rows });
+        await redis.HSET(
+          "ALBUM_SONGS",
+          String(id),
+          JSON.stringify(albumSongs.rows)
+        );
+        await redis.EXPIRE("ALBUM_SONGS", 60 * 60 * 24, "NX");
+      }
     } catch (error) {
       console.log("Error at GET /album/songlist route:\n", error);
       res.sendStatus(500);
