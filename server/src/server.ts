@@ -29,7 +29,7 @@ async function mainPG() {
 async function mainRedis() {
   const client = await redis.connect();
   try {
-    const res = redis.set("application", "BlastFm");
+    const res = await redis.HSET("USERS", 0, "USER");
   } catch (error) {
     throw new Error(error);
   }
@@ -41,7 +41,7 @@ mainPG()
 
 mainRedis()
   .then(() => console.log("Connected to Redis!"))
-  .catch((err) => console.log("Error connecting to Postgres:\n", err));
+  .catch((err) => console.log("Error connecting to Redis:\n", err));
 
 app.listen(PORT, process.env.SERVER_HOST ?? "server-c", () => {
   console.log(`Server running on port ${PORT}`);
