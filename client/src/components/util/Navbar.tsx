@@ -42,6 +42,7 @@ function Navbar({
 
   const settings = [
     {
+      isVisible: true,
       text: "Logout",
       function: () => {
         removeCookie("token");
@@ -51,10 +52,12 @@ function Navbar({
       },
     },
     {
+      isVisible: user !== null && user.is_spotify_connected,
       text: "Sync data",
       function: async () => {
-        let access_token_data;
-        if (cookie.access_token === undefined) {
+        let access_token_data = cookie.access_token;
+        if (access_token_data === undefined) {
+          // if cookie expires new access token is generated
           access_token_data = await getAccessTokens(cookie.token.token);
           setCookie(
             "access_token",
@@ -62,11 +65,17 @@ function Navbar({
             { maxAge: access_token_data.expires_in }
           );
         }
-        await syncData(access_token_data.access_token, cookie.token.token);
-        enqueueSnackbar("Synced data", { variant: "success" });
+        const isDataSynced = await syncData(
+          access_token_data.access_token,
+          cookie.token.token
+        );
+        if (isDataSynced)
+          enqueueSnackbar("Synced data", { variant: "success" });
+        else enqueueSnackbar("Could not sync data", { variant: "error" });
       },
     },
     {
+      isVisible: true,
       text: "Change theme",
       function: () => {
         setTheme(theme === "dark" ? "light" : "dark");
@@ -242,23 +251,26 @@ function Navbar({
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {settings.map((setting, i) => (
-                  <MenuItem
-                    key={i}
-                    onClick={() => {
-                      setting.function();
-                      handleCloseUserMenu();
-                    }}
-                    sx={{
-                      color: "rgba(var(--text))",
-                      backgroundColor: "rgba(var(--background))",
-                    }}
-                  >
-                    <Typography sx={{ textAlign: "center" }}>
-                      {setting.text}
-                    </Typography>
-                  </MenuItem>
-                ))}
+                {settings.map((setting, i) => {
+                  if (!setting.isVisible) return;
+                  return (
+                    <MenuItem
+                      key={i}
+                      onClick={() => {
+                        setting.function();
+                        handleCloseUserMenu();
+                      }}
+                      sx={{
+                        color: "rgba(var(--text))",
+                        backgroundColor: "rgba(var(--background))",
+                      }}
+                    >
+                      <Typography sx={{ textAlign: "center" }}>
+                        {setting.text}
+                      </Typography>
+                    </MenuItem>
+                  );
+                })}
               </Menu>
             </Box>
           )}

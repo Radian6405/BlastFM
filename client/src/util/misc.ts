@@ -16,8 +16,10 @@ export async function getAccessTokens(auth_token: string) {
     }
   );
 
-  if (!response.ok) return null;
   const data = await response.json();
+  if (!response.ok) {
+    return data.message ?? null;
+  }
 
   return data;
 }
