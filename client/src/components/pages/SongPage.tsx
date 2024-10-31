@@ -7,11 +7,13 @@ import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
 import { getDetails } from "../../util/getData";
 import LoadingCard from "../util/LoadingCard";
-import { getFormatedTime } from "../../util/misc";
+import { getAccessTokens, getFormatedTime } from "../../util/misc";
 
 function SongPage() {
   const [song, setSong] = useState<song | null>(null);
-  const [cookie] = useCookies(["token"]);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+
+  const [cookie, setCookie] = useCookies(["token", "access_token"]);
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
 
@@ -23,8 +25,74 @@ function SongPage() {
       id,
       "song"
     );
-    if (typeof data !== "string" && data !== null) setSong(data);
-    else if (typeof data === "string") enqueueSnackbar(data);
+    if (typeof data !== "string" && data !== null) {
+      setSong(data);
+      setIsLiked(data.is_liked);
+    } else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
+  async function swapLike() {
+    if (cookie.token == null || song == null) return;
+
+    // getting access token
+    let access_token = cookie.access_token;
+    if (access_token == null) {
+      // if access token doesnt exist
+      const access_token_data = await getAccessTokens(cookie.token.token);
+      if (access_token_data === null || typeof access_token_data === "string") {
+        enqueueSnackbar(access_token_data ?? "Could not get access tokens", {
+          variant: "error",
+        });
+        return;
+      }
+      setCookie(
+        "access_token",
+        { access_token: access_token_data.access_token },
+        { maxAge: access_token_data.expires_in }
+      );
+
+      access_token = { access_token: access_token_data.access_token };
+    }
+
+    // liking / disliking it
+    const query = new URLSearchParams([
+      ["spotify_id", song.spotify_id ?? ""],
+      ["access_token", access_token.access_token],
+    ]).toString();
+    const response = await fetch(
+      "http://localhost:8000" + "/api/song/like" + "?" + query,
+      {
+        method: isLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+
+        body: !isLiked
+          ? JSON.stringify({
+              spotify_id: song.spotify_id,
+              access_token: access_token.access_token,
+            })
+          : null,
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(
+        data?.message ?? "Error with liking/disliking " + song.name,
+        { variant: "error" }
+      );
+      return;
+    }
+
+    enqueueSnackbar(
+      isLiked
+        ? `Removed ${song.name} from liked songs`
+        : `Added ${song.name} to liked songs`,
+      { variant: "success" }
+    );
+    setIsLiked(!isLiked);
   }
 
   useEffect(() => {
@@ -54,7 +122,8 @@ function SongPage() {
                       size={60}
                       fontSize={36}
                       tooltip="like"
-                      fill={song.is_liked}
+                      fill={isLiked}
+                      onClick={swapLike}
                     />
                     <PlusIconButton tooltip="add to playlist" />
                   </div>
