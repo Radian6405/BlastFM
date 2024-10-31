@@ -18,6 +18,7 @@ import { SnackbarProvider } from "notistack";
 import { getUserData } from "./util/getData";
 import { user } from "./util/interfaces";
 import { useCookies } from "react-cookie";
+import Search from "./components/pages/Search";
 
 const globalTheme = createTheme({
   palette: {
@@ -84,6 +85,8 @@ function App() {
             <Route path="/song/:id" element={<SongPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
+
+            <Route path="/search" element={<Search />} />
           </Routes>
         </ThemeProvider>
       </SnackbarProvider>

@@ -1,7 +1,8 @@
-import { Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Autocomplete, Button, Paper, TextField } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
 import { user } from "../../util/interfaces";
 import ConnectButton from "../util/ConnectButton";
+import { useState } from "react";
 
 function Home({ user }: { user: user | null }) {
   return (
@@ -13,7 +14,7 @@ function Home({ user }: { user: user | null }) {
           ) : !user.is_spotify_connected ? (
             <PreConnect />
           ) : (
-            <div className="size-24 bg-blue-500"></div>
+            <Discover />
           )}
         </div>
       </div>
@@ -99,6 +100,87 @@ function PreConnect() {
       </div>
       <div className="col-span-1 col-start-2 row-span-1 row-start-3 flex flex-row items-start justify-start gap-4 px-2 py-4">
         <ConnectButton />
+      </div>
+    </>
+  );
+}
+
+function Discover() {
+  const [query, setQuery] = useState<string>("");
+  const [option, setOption] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
+  function search() {
+    if (query !== "" && option !== null)
+      navigate("/search?" + "query=" + query + "&option=" + option);
+  }
+
+  return (
+    <>
+      <div className="col-span-2 row-span-1">
+        <div className="p-4 text-center text-8xl font-bold">
+          <span className="bg-gradient-to-t from-primary to-accent bg-clip-text text-transparent">
+            Discover new music
+          </span>
+        </div>
+      </div>
+      <div className="col-span-2 row-span-1 flex flex-row items-center justify-center">
+        <TextField
+          id="outlined-basic"
+          label="Search"
+          variant="outlined"
+          sx={{
+            width: "50%",
+            fontSize: 64,
+            backgroundColor: "rgba(var(--light-background))",
+          }}
+          autoComplete="off"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          required
+          size="medium"
+        />
+        <Autocomplete
+          options={["Songs", "Albums"]}
+          getOptionLabel={(option: any) => option}
+          sx={{ width: "20%", color: "rgba(var(--text))" }}
+          value={option}
+          onChange={(_event: any, newValue: string | null) => {
+            setOption(newValue);
+          }}
+          renderInput={(params: any) => (
+            <TextField
+              {...params}
+              sx={{
+                color: "rgba(var(--text))",
+                backgroundColor: "rgba(var(--light-background))",
+              }}
+              label="Type"
+              required
+            />
+          )}
+          PaperComponent={({ children }) => (
+            <Paper style={{ background: "rgba(var(--light-background))" }}>
+              {children}
+            </Paper>
+          )}
+        />
+      </div>
+      <div className="col-span-2 row-span-1 flex flex-row items-center justify-center">
+        <Button
+          variant="contained"
+          disableElevation
+          sx={{
+            backgroundColor: "rgba(var(--primary))",
+            borderRadius: 2,
+            textTransform: "capitalize",
+            color: "rgba(var(--text))",
+          }}
+          onClick={search}
+        >
+          <span className="mx-1 my-2 text-2xl">Search</span>
+        </Button>
       </div>
     </>
   );

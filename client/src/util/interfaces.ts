@@ -6,13 +6,13 @@ export interface user {
 }
 
 export interface artist {
-  id: number;
+  id?: number;
   spotify_id?: string | null;
   name: string;
 }
 
 export interface song {
-  id: number;
+  id?: number;
   spotify_id?: string | null;
   name: string;
   cover_image?: string;
@@ -21,14 +21,14 @@ export interface song {
 }
 
 export interface album {
-  id: number;
+  id?: number;
   spotify_id?: string | null;
   name: string;
   description?: string | null;
   track_count: number;
   cover_image?: string | null;
   artist: artist;
-  total_playtime: number;
+  total_playtime?: number;
 }
 
 export interface playlist {
