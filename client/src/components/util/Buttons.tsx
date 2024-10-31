@@ -68,7 +68,7 @@ export function LikeButton({
             width: size ?? 40,
             height: size ?? 40,
           }}
-          aria-label="delete"
+          aria-label={tooltip}
           onClick={onClick}
         >
           <FavoriteIcon sx={{ fontSize: fontSize ?? 24 }} />
@@ -81,7 +81,7 @@ export function LikeButton({
             width: size ?? 40,
             height: size ?? 40,
           }}
-          aria-label="delete"
+          aria-label={tooltip}
           onClick={onClick}
         >
           <FavoriteBorderIcon sx={{ fontSize: fontSize ?? 24 }} />
@@ -108,7 +108,7 @@ export function MoreButton({ tooltip }: IconButtonProps) {
   );
 }
 
-export function StarButton({ tooltip, fill }: IconButtonProps) {
+export function StarButton({ tooltip, fill, onClick }: IconButtonProps) {
   return (
     <Tooltip title={tooltip}>
       {fill ? (
@@ -119,7 +119,8 @@ export function StarButton({ tooltip, fill }: IconButtonProps) {
             width: 60,
             height: 60,
           }}
-          aria-label="delete"
+          aria-label={tooltip}
+          onClick={onClick}
         >
           <StarIcon sx={{ fontSize: 36 }} />
         </IconButton>
@@ -131,7 +132,8 @@ export function StarButton({ tooltip, fill }: IconButtonProps) {
             width: 60,
             height: 60,
           }}
-          aria-label="delete"
+          aria-label={tooltip}
+          onClick={onClick}
         >
           <StarBorderIcon sx={{ fontSize: 36 }} />
         </IconButton>

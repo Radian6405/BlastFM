@@ -36,7 +36,6 @@ export function SongSearchCard({ song }: { song: any }) {
     // liking / disliking it
     const query = new URLSearchParams([
       ["spotify_id", song.spotify_id ?? ""],
-      ["access_token", access_token.access_token],
     ]).toString();
     const response = await fetch(
       "http://localhost:8000" + "/api/song/like" + (isLiked ? "?" + query : ""),

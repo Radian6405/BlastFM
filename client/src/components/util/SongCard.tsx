@@ -39,10 +39,9 @@ function SongCard({ song }: { song: song }) {
     // liking / disliking it
     const query = new URLSearchParams([
       ["spotify_id", song.spotify_id ?? ""],
-      ["access_token", access_token.access_token],
     ]).toString();
     const response = await fetch(
-      "http://localhost:8000" + "/api/song/like" + "?" + query,
+      "http://localhost:8000" + "/api/song/like" + (isLiked ? "?" + query : ""),
       {
         method: isLiked ? "DELETE" : "POST",
         headers: {

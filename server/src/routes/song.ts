@@ -46,7 +46,7 @@ router.post(
           return;
         }
 
-        // creating artist and songs
+        // creating artists and song
         const newArtists = await createArtists(getNewSong.artists);
         const newSong = await createSongs([getNewSong]);
         if (newSong === 0) {
