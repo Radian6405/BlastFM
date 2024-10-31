@@ -154,7 +154,9 @@ router.get(
       let songsData;
       try {
         songsData = await pool.query(
-          `SELECT s.id, s.name, s.playtime, s.cover_image,jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists 
+          `SELECT s.id, s.name, s.playtime, s.cover_image,
+          jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists,
+          true AS is_liked 
           FROM liked_songs ls 
           INNER JOIN songs s ON s.id = ls.song_id 
           INNER JOIN artists_songs ars ON ars.song_id = s.id 
@@ -194,18 +196,27 @@ router.get(
 // to READ a song's detail
 router.get(
   "/details",
+  aucthenticateJWT,
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
     try {
       const songDetails = await pool.query(
-        `SELECT s.id, s.name, s.playtime, s.cover_image, jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists
-            FROM songs s
-            INNER JOIN artists_songs ars ON ars.song_id = s.id
-            INNER JOIN artists a ON a.id = ars.artist_id
-            WHERE s.id = $1
-            GROUP BY s.id,s.name,s.playtime, s.cover_image
+        `SELECT s.id, s.name, s.playtime, s.cover_image, 
+            jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists,
+            CASE 
+              WHEN EXISTS (
+                SELECT 1 FROM liked_songs ls 
+                WHERE ls.song_id = s.id AND ls.user_id = $2
+              ) THEN true
+              ELSE false
+            END AS is_liked
+        FROM songs s
+        INNER JOIN artists_songs ars ON ars.song_id = s.id
+        INNER JOIN artists a ON a.id = ars.artist_id
+        WHERE s.id = $1
+        GROUP BY s.id,s.name,s.playtime, s.cover_image
           `,
-        [id]
+        [id, req.user?.id ?? 0]
       );
 
       if (Number(songDetails.rowCount) > 0)

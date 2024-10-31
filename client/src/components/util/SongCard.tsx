@@ -54,7 +54,7 @@ function SongCard({ song }: { song: song }) {
           })}
         </div>
         <div className="flex w-[30%] items-center justify-end gap-3 pr-4 text-text ">
-          <LikeButton tooltip="like" />
+          <LikeButton tooltip="like" fill={song.is_liked} />
           <span className="text-right">{getFormatedTime(song.playtime)}</span>
           <MoreButton tooltip="More options" />
         </div>

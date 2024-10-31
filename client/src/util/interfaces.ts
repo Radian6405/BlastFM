@@ -18,6 +18,7 @@ export interface song {
   cover_image?: string;
   playtime: number;
   artists: artist[];
+  is_liked: boolean;
 }
 
 export interface album {

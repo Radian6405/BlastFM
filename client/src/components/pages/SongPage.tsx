@@ -19,7 +19,7 @@ function SongPage() {
     if (typeof id !== "string") return;
 
     const data: song | null | string = await getDetails(
-      cookie.token.token,
+      cookie?.token?.token,
       id,
       "song"
     );
@@ -50,7 +50,12 @@ function SongPage() {
                   sx={{ backgroundColor: "rgba(var(--background))" }}
                 >
                   <div className="my-4 flex flex-row justify-start gap-4 px-2">
-                    <LikeButton size={60} fontSize={36} tooltip="like" />
+                    <LikeButton
+                      size={60}
+                      fontSize={36}
+                      tooltip="like"
+                      fill={song.is_liked}
+                    />
                     <PlusIconButton tooltip="add to playlist" />
                   </div>
                 </CardContent>
@@ -63,7 +68,7 @@ function SongPage() {
               <div className="text-start text-3xl text-text">
                 {song.artists.map((artist: artist, i) => {
                   return (
-                    <span>
+                    <span key={i}>
                       {artist.name}
                       {i !== song.artists.length - 1 && ", "}
                     </span>

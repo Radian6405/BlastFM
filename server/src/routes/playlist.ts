@@ -211,15 +211,23 @@ router.get(
       } else {
         // cache miss
         const playlistSongs = await pool.query(
-          `SELECT s.id, s.name, s.playtime, s.cover_image, jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
-        FROM playlists_songs ps 
-        INNER JOIN songs s ON s.id = ps.song_id 
-        INNER JOIN artists_songs ars ON ars.song_id = s.id 
-        INNER JOIN artists a ON a.id = ars.artist_id 
-        WHERE playlist_id = $1 
-        GROUP BY s.id,s.name,s.playtime, s.cover_image
+          `SELECT s.id, s.name, s.playtime, s.cover_image, 
+          jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists,
+          CASE 
+            WHEN EXISTS (
+              SELECT 1 FROM liked_songs ls 
+              WHERE ls.song_id = s.id AND ls.user_id = $2
+            ) THEN true
+            ELSE false
+          END AS is_liked
+          FROM playlists_songs ps 
+          INNER JOIN songs s ON s.id = ps.song_id 
+          INNER JOIN artists_songs ars ON ars.song_id = s.id 
+          INNER JOIN artists a ON a.id = ars.artist_id 
+          WHERE playlist_id = $1 
+          GROUP BY s.id,s.name,s.playtime, s.cover_image
         `,
-          [id]
+          [id, req.user?.id ?? 0]
         );
 
         // for private playlists checking for ownership

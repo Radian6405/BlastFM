@@ -149,28 +149,29 @@ export async function createPlaylists(
   let playlists: number = 0;
   for (let i = 0; i < playlistData.length; i++) {
     try {
-      // checking if album already exists
-      const doesAlbumExist = await pool.query(
+      // checking if playlist already exists
+      const doesPlaylistExist = await pool.query(
         "SELECT * FROM playlists WHERE spotify_id = $1",
         [playlistData[i].spotify_id]
       );
-      if (Number(doesAlbumExist.rowCount) > 0) continue;
 
-      const newPlaylist = await pool.query(
-        `INSERT INTO playlists
-          (name,total_playtime,track_count,spotify_id,owner_id,cover_image) 
-          VALUES ($1,$2,$3,$4,$5,$6)
-          RETURNING id;`,
-        [
-          playlistData[i].name,
-          playlistData[i].total_playtime,
-          playlistData[i].track_count,
-          playlistData[i].spotify_id,
-          user_id,
-          playlistData[i].cover_image,
-        ]
-      );
-
+      let newPlaylist;
+      if (Number(doesPlaylistExist.rowCount) === 0) {
+        newPlaylist = await pool.query(
+          `INSERT INTO playlists
+        (name,total_playtime,track_count,spotify_id,owner_id,cover_image) 
+        VALUES ($1,$2,$3,$4,$5,$6)
+        RETURNING id;`,
+          [
+            playlistData[i].name,
+            playlistData[i].total_playtime,
+            playlistData[i].track_count,
+            playlistData[i].spotify_id,
+            user_id,
+            playlistData[i].cover_image,
+          ]
+        );
+      }
       // connecting this playlist to song(s)
 
       //creates string like
@@ -184,6 +185,7 @@ export async function createPlaylists(
       for (let j = 0; j < songs.length; j += split_length)
         split_songs.push(songs.slice(j, j + split_length));
 
+      let is_updated = false;
       for (let j = 0; j < split_songs.length; j += 1) {
         const values = split_songs[j]
           .map(
@@ -193,15 +195,16 @@ export async function createPlaylists(
           .join(", ");
 
         const newRelations = await pool.query(
-          `INSERT INTO playlists_songs(playlist_id,song_id) VALUES ${values}`,
+          `INSERT INTO playlists_songs(playlist_id,song_id) VALUES ${values} ON CONFLICT DO NOTHING`,
           [
-            newPlaylist.rows[0].id,
+            (newPlaylist ?? doesPlaylistExist).rows[0].id,
             ...split_songs[j].map((song: song) => song.spotify_id),
           ]
         );
+        if (Number(newRelations.rowCount) > 0) is_updated = true;
       }
 
-      playlists++;
+      if (is_updated) playlists++;
       // console.log("Added new album:", playlistData[i].name);
     } catch (error) {
       console.log("Error creating playlists:\n", error);

@@ -237,7 +237,14 @@ router.get(
       } else {
         // cache miss
         const albumSongs = await pool.query(
-          `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image
+          `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image,
+          CASE 
+            WHEN EXISTS (
+              SELECT 1 FROM liked_songs ls 
+              WHERE ls.song_id = q.id AND ls.user_id = $2
+            ) THEN true
+            ELSE false
+          END AS is_liked
           FROM albums_songs als
           INNER JOIN
           (
@@ -248,7 +255,7 @@ router.get(
             GROUP BY s.id,s.name,s.playtime, s.cover_image
           ) q ON q.id = als.song_id
           WHERE als.album_id = $1;`,
-          [id]
+          [id, req.user?.id ?? 0]
         );
 
         res.status(200).send({ songs: albumSongs.rows });
