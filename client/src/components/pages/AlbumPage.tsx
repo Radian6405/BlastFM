@@ -8,11 +8,14 @@ import { useParams } from "react-router-dom";
 import { getDetails, getSongs } from "../../util/getData";
 import LoadingCard from "../util/LoadingCard";
 import SongCard from "../util/SongCard";
+import { getAccessTokens } from "../../util/misc";
 
 function AlbumPage() {
   const [albumDetails, setAlbumDetails] = useState<album | null>(null);
   const [songs, setSongs] = useState<song[] | null>(null);
-  const [cookie] = useCookies(["token"]);
+  const [isStarred, setIsStarred] = useState<boolean>(false);
+
+  const [cookie, setCookie] = useCookies(["token", "access_token"]);
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
 
@@ -24,8 +27,10 @@ function AlbumPage() {
       id,
       "album"
     );
-    if (typeof data !== "string" && data !== null) setAlbumDetails(data);
-    else if (typeof data === "string") enqueueSnackbar(data);
+    if (typeof data !== "string" && data !== null) {
+      setAlbumDetails(data);
+      setIsStarred(data.is_starred);
+    } else if (typeof data === "string") enqueueSnackbar(data);
   }
   async function setAlbumSongsData() {
     if (typeof id !== "string") return;
@@ -36,6 +41,71 @@ function AlbumPage() {
     );
     if (typeof data !== "string" && data !== null) setSongs(data);
     else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
+  async function swapStar() {
+    if (cookie.token == null || albumDetails == null) return;
+
+    // getting access token
+    let access_token = cookie.access_token;
+    if (access_token == null) {
+      // if access token doesnt exist
+      const access_token_data = await getAccessTokens(cookie.token.token);
+      if (access_token_data === null || typeof access_token_data === "string") {
+        enqueueSnackbar(access_token_data ?? "Could not get access tokens", {
+          variant: "error",
+        });
+        return;
+      }
+      setCookie(
+        "access_token",
+        { access_token: access_token_data.access_token },
+        { maxAge: access_token_data.expires_in }
+      );
+
+      access_token = { access_token: access_token_data.access_token };
+    }
+
+    // liking / disliking it
+    const query = new URLSearchParams([
+      ["spotify_id", albumDetails.spotify_id ?? ""],
+    ]).toString();
+    const response = await fetch(
+      "http://localhost:8000" +
+        "/api/album/star" +
+        (isStarred ? "?" + query : ""),
+      {
+        method: isStarred ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+
+        body: !isStarred
+          ? JSON.stringify({
+              spotify_id: albumDetails.spotify_id,
+              access_token: access_token.access_token,
+            })
+          : null,
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(
+        data?.message ?? "Error with starring/unstarring " + albumDetails.name,
+        { variant: "error" }
+      );
+      return;
+    }
+
+    enqueueSnackbar(
+      isStarred
+        ? `Removed ${albumDetails.name} from starred albums`
+        : `Added ${albumDetails.name} to starred albums`,
+      { variant: "success" }
+    );
+    setIsStarred(!isStarred);
   }
 
   useEffect(() => {
@@ -61,14 +131,20 @@ function AlbumPage() {
                 <CardContent
                   sx={{ backgroundColor: "rgba(var(--background))" }}
                 >
-                  <div className="text-start text-6xl font-bold text-text">
-                    {albumDetails.name}
-                  </div>
-                  <div className="text-start text-2xl text-text">
-                    {albumDetails.artist.name}
-                  </div>
-                  <div className="my-4 flex flex-row justify-start gap-4 px-2">
-                    <StarButton tooltip="star" fill />
+                  <div className="flex flex-col items-start justify-center gap-2">
+                    <div className="text-start text-4xl font-bold text-text">
+                      {albumDetails.name}
+                    </div>
+                    <div className="text-start text-2xl text-text">
+                      {albumDetails.artist.name}
+                    </div>
+                    <div className="my-4 flex flex-row justify-start gap-4 px-2">
+                      <StarButton
+                        tooltip={isStarred ? "Unstar" : "Star"}
+                        fill={isStarred}
+                        onClick={swapStar}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </>

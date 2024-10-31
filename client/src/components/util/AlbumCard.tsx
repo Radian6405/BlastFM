@@ -34,10 +34,10 @@ function AlbumCard({ album }: { album: album }) {
             {album.track_count} tracks
           </div>
           <div className="text-md overflow-hidden text-text/50">
-            {album.total_playtime > 60
-              ? Math.round(album.total_playtime / 60)
+            {(album.total_playtime ?? 0) > 60
+              ? Math.round((album.total_playtime ?? 0) / 60)
               : album.total_playtime}
-            {album.total_playtime > 60 ? " min" : " sec"}
+            {(album.total_playtime ?? 0) > 60 ? " min" : " sec"}
           </div>
         </div>
       </CardContent>

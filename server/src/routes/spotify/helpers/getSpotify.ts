@@ -213,3 +213,46 @@ export async function getSong(access_token: string, song_id: string) {
     }),
   };
 }
+
+export async function getAlbum(access_token: string, album_id: string) {
+  const query: string = new URLSearchParams([["market", "IN"]]).toString();
+  const getAlbumData = await fetch(
+    "https://api.spotify.com/v1/albums/" + album_id + "?" + query,
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+  // console.log(data.items[i].tracks.href + "?" + song_query);
+  if (!getAlbumData.ok) return null;
+  const album = await getAlbumData.json();
+
+  let total_playtime = 0;
+  album.tracks.items.forEach((item: any) => {
+    total_playtime += item.duration_ms;
+  });
+
+  return {
+    spotify_id: album.id,
+    name: album.name,
+    track_count: album.tracks.total,
+    cover_image: album.images[0].url,
+    artist: {
+      name: album.artists[0].name,
+      spotify_id: album.artists[0].id,
+    },
+    total_playtime: Math.round(total_playtime / 1000),
+    songs: album.tracks.items.map((item: any) => {
+      return {
+        spotify_id: item.id,
+        name: item.name,
+        cover_image: album.images[0].url,
+        playtime: Math.round(item.duration_ms / 1000),
+        artists: item.artists.map((artist: any) => {
+          return { name: artist.name, spotify_id: artist.id };
+        }),
+      };
+    }),
+  };
+}

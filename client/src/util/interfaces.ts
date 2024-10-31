@@ -30,6 +30,7 @@ export interface album {
   cover_image?: string | null;
   artist: artist;
   total_playtime?: number;
+  is_starred: boolean;
 }
 
 export interface playlist {

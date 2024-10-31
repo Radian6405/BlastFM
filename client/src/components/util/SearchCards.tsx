@@ -2,7 +2,7 @@ import { Card, CardMedia, Box } from "@mui/material";
 import { artist } from "../../util/interfaces";
 import { getAccessTokens, getFormatedTime } from "../../util/misc";
 import { LikeButton, MoreButton, StarButton } from "./Buttons";
-import { enqueueSnackbar } from "notistack";
+import { enqueueSnackbar, useSnackbar } from "notistack";
 import { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 
@@ -133,6 +133,75 @@ export function SongSearchCard({ song }: { song: any }) {
 }
 
 export function AlbumSearchCard({ album }: { album: any }) {
+  const [isStarred, setIsStarred] = useState<boolean>(false);
+
+  const [cookie, setCookie] = useCookies(["token", "access_token"]);
+  const { enqueueSnackbar } = useSnackbar();
+
+  async function swapStar() {
+    if (cookie.token == null || album == null) return;
+
+    // getting access token
+    let access_token = cookie.access_token;
+    if (access_token == null) {
+      // if access token doesnt exist
+      const access_token_data = await getAccessTokens(cookie.token.token);
+      if (access_token_data === null || typeof access_token_data === "string") {
+        enqueueSnackbar(access_token_data ?? "Could not get access tokens", {
+          variant: "error",
+        });
+        return;
+      }
+      setCookie(
+        "access_token",
+        { access_token: access_token_data.access_token },
+        { maxAge: access_token_data.expires_in }
+      );
+
+      access_token = { access_token: access_token_data.access_token };
+    }
+
+    // starring / unstarring it
+    const query = new URLSearchParams([
+      ["spotify_id", album.spotify_id ?? ""],
+    ]).toString();
+    const response = await fetch(
+      "http://localhost:8000" +
+        "/api/album/star" +
+        (isStarred ? "?" + query : ""),
+      {
+        method: isStarred ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+
+        body: !isStarred
+          ? JSON.stringify({
+              spotify_id: album.spotify_id,
+              access_token: access_token.access_token,
+            })
+          : null,
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(
+        data?.message ?? "Error with starring/unstarring " + album.name,
+        { variant: "error" }
+      );
+      return;
+    }
+
+    enqueueSnackbar(
+      isStarred
+        ? `Removed ${album.name} from starred albums`
+        : `Added ${album.name} to starred albums`,
+      { variant: "success" }
+    );
+    setIsStarred(!isStarred);
+  }
   return (
     <Card
       sx={{
@@ -180,7 +249,11 @@ export function AlbumSearchCard({ album }: { album: any }) {
           })}
         </div>
         <div className="flex w-[30%] items-center justify-end gap-3 pr-4 text-text ">
-          <StarButton tooltip="Star album" />
+          <StarButton
+            tooltip={isStarred ? "Unstar" : "Star"}
+            fill={isStarred}
+            onClick={swapStar}
+          />
         </div>
       </Box>
     </Card>

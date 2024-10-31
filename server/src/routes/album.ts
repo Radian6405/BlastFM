@@ -2,6 +2,13 @@ import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
 import redis from "../cache";
+import { getAlbum } from "./spotify/helpers/getSpotify";
+import { album, artist, song } from "../types/interfaces";
+import {
+  createAlbums,
+  createArtists,
+  createSongs,
+} from "./spotify/helpers/create";
 const router: Router = Router();
 
 // to ADD album to starred albums
@@ -16,8 +23,8 @@ router.post(
       return;
     }
 
-    const { id } = req.body;
-    if (id === undefined || id === null) {
+    const { spotify_id, access_token } = req.body;
+    if (spotify_id == null || access_token == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -27,35 +34,58 @@ router.post(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.body;
+    const { spotify_id, access_token } = req.body;
 
     try {
       // checking if album exits
-      const album = await pool.query("SELECT * FROM albums WHERE id = $1", [
-        id,
-      ]);
+      const album = await pool.query(
+        "SELECT * FROM albums WHERE id = (SELECT id FROM albums WHERE spotify_id = $1)",
+        [spotify_id]
+      );
       if (Number(album.rowCount) === 0) {
-        res.status(400).send({
-          message: "Album does not exist",
+        // creating album from spotify
+        const getNewAlbum: album | null = await getAlbum(
+          access_token,
+          spotify_id
+        );
+        if (getNewAlbum == null || getNewAlbum.songs == null) {
+          res.status(400).send({ message: "Could not create album" });
+          return;
+        }
+
+        // creating artists and songs
+        let artistList: artist[] = [];
+        getNewAlbum.songs?.forEach((song: song) => {
+          artistList.push(...song.artists);
         });
-        return;
+        artistList.push(getNewAlbum.artist);
+
+        const newArtists = await createArtists(artistList);
+        const newSongs = await createSongs(getNewAlbum.songs);
+        // creating album
+        const newAlbum = await createAlbums([getNewAlbum]);
+
+        if (newAlbum === 0) {
+          res.status(400).send({ message: "Could not create album" });
+          return;
+        }
       }
 
       // checking if relation already exists
       const relation = await pool.query(
-        "SELECT * FROM starred_albums WHERE user_id = $1 AND album_id = $2;",
-        [req.user?.id, id]
+        "SELECT * FROM starred_albums WHERE user_id = $1 AND album_id = (SELECT id FROM albums WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(relation.rowCount) > 0) {
-        res.status(400).send({
+        res.status(200).send({
           message: "Album is already starred",
         });
         return;
       }
 
       const newRelation = await pool.query(
-        "INSERT INTO starred_albums(user_id, album_id) VALUES ($1,$2);",
-        [req.user?.id, id]
+        "INSERT INTO starred_albums(user_id, album_id) VALUES ($1,(SELECT id FROM albums WHERE spotify_id = $2));",
+        [req.user?.id, spotify_id]
       );
       if (Number(newRelation.rowCount) > 0) res.sendStatus(201);
       else
@@ -70,7 +100,7 @@ router.post(
 );
 // to REMOVE album from starred albums
 router.delete(
-  "/unstar",
+  "/star",
   aucthenticateJWT,
   (req: Request, res: Response, next: NextFunction) => {
     if (req.user === null) {
@@ -80,8 +110,8 @@ router.delete(
       return;
     }
 
-    const { id } = req.query;
-    if (id === undefined || id === null) {
+    const { spotify_id } = req.query;
+    if (spotify_id == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -91,13 +121,14 @@ router.delete(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.query;
+    const { spotify_id } = req.query;
 
     try {
       // checking if album exits
-      const album = await pool.query("SELECT * FROM albums WHERE id = $1", [
-        id,
-      ]);
+      const album = await pool.query(
+        "SELECT * FROM albums WHERE id = (SELECT id FROM albums WHERE spotify_id = $1)",
+        [spotify_id]
+      );
       if (Number(album.rowCount) === 0) {
         res.status(400).send({
           message: "Album does not exist",
@@ -107,19 +138,19 @@ router.delete(
 
       // checking if relation already exists
       const relation = await pool.query(
-        "SELECT * FROM starred_albums WHERE user_id = $1 AND album_id = $2;",
-        [req.user?.id, id]
+        "SELECT * FROM starred_albums WHERE user_id = $1 AND album_id = (SELECT id FROM albums WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(relation.rowCount) === 0) {
-        res.status(400).send({
+        res.status(200).send({
           message: "Album is not in starred albums",
         });
         return;
       }
 
       const newRelation = await pool.query(
-        "DELETE FROM starred_albums WHERE user_id = $1 AND album_id = $2;",
-        [req.user?.id, id]
+        "DELETE FROM starred_albums WHERE user_id = $1 AND album_id = (SELECT id FROM albums WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(newRelation.rowCount) > 0) res.sendStatus(200);
       else
@@ -147,11 +178,19 @@ router.get(
 
     try {
       const albums = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist 
-            FROM starred_albums sa 
-            INNER JOIN albums a ON a.id = sa.album_id 
-            INNER JOIN artists ar ON ar.id = a.artist_id 
-            WHERE sa.user_id = $1;`,
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image, a.spotify_id,
+          CASE 
+            WHEN EXISTS (
+              SELECT 1 FROM starred_albums sa2 
+              WHERE sa2.album_id = a.id AND sa2.user_id = $1
+            ) THEN true
+            ELSE false
+          END AS is_starred,
+          jsonb_build_object('id',ar.id,'name',ar.name) as artist 
+          FROM starred_albums sa 
+          INNER JOIN albums a ON a.id = sa.album_id 
+          INNER JOIN artists ar ON ar.id = a.artist_id 
+          WHERE sa.user_id = $1;`,
         [req.user.id]
       );
 
@@ -177,15 +216,25 @@ router.get(
 
     next();
   },
+  aucthenticateJWT,
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
 
     try {
       const album = await pool.query(
-        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image, jsonb_build_object('id',ar.id,'name',ar.name) as artist from albums a 
+        `SELECT a.id, a.name, a.description, a.cover_image, a.total_playtime, a.track_count, a.cover_image,a.spotify_id,
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM starred_albums sa2 
+            WHERE sa2.album_id = a.id AND sa2.user_id = $2
+          ) THEN true
+          ELSE false
+        END AS is_starred,
+        jsonb_build_object('id',ar.id,'name',ar.name) as artist 
+        FROM albums a
         INNER JOIN artists ar ON ar.id = a.artist_id 
         WHERE a.id = $1;`,
-        [id]
+        [id, req.user?.id]
       );
 
       if (Number(album.rowCount) > 0) res.status(200).send(album.rows[0]);
