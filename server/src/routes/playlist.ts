@@ -211,7 +211,7 @@ router.get(
       } else {
         // cache miss
         const playlistSongs = await pool.query(
-          `SELECT s.id, s.name, s.playtime, s.cover_image, 
+          `SELECT s.id, s.name, s.playtime, s.cover_image, s.spotify_id,
           jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists,
           CASE 
             WHEN EXISTS (
@@ -225,7 +225,7 @@ router.get(
           INNER JOIN artists_songs ars ON ars.song_id = s.id 
           INNER JOIN artists a ON a.id = ars.artist_id 
           WHERE playlist_id = $1 
-          GROUP BY s.id,s.name,s.playtime, s.cover_image
+          GROUP BY s.id,s.name,s.playtime, s.cover_image, s.spotify_id
         `,
           [id, req.user?.id ?? 0]
         );
@@ -363,6 +363,7 @@ router.post(
 
         res.sendStatus(201);
         redis.HDEL("PLAYLIST_SONGS", String(playlist_id));
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
       } else
         res.status(400).send({
           message: "Could not add song to the playlist",
@@ -447,6 +448,7 @@ router.delete(
         );
         res.sendStatus(200);
         redis.HDEL("PLAYLIST_SONGS", String(playlist_id));
+        redis.HDEL("LIKED_SONGS", String(req.user?.id));
       } else
         res.status(400).send({
           message: "Could not delete song from the playlist",

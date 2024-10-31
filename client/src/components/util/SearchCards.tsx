@@ -1,9 +1,82 @@
 import { Card, CardMedia, Box } from "@mui/material";
 import { artist } from "../../util/interfaces";
-import { getFormatedTime } from "../../util/misc";
+import { getAccessTokens, getFormatedTime } from "../../util/misc";
 import { LikeButton, MoreButton, StarButton } from "./Buttons";
+import { enqueueSnackbar } from "notistack";
+import { useState, useEffect } from "react";
+import { useCookies } from "react-cookie";
 
 export function SongSearchCard({ song }: { song: any }) {
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [cookie, setCookie] = useCookies(["token", "access_token"]);
+
+  async function swapLike() {
+    if (cookie.token == null || song == null) return;
+
+    // getting access token
+    let access_token = cookie.access_token;
+    if (access_token == null) {
+      // if access token doesnt exist
+      const access_token_data = await getAccessTokens(cookie.token.token);
+      if (access_token_data === null || typeof access_token_data === "string") {
+        enqueueSnackbar(access_token_data ?? "Could not get access tokens", {
+          variant: "error",
+        });
+        return;
+      }
+      setCookie(
+        "access_token",
+        { access_token: access_token_data.access_token },
+        { maxAge: access_token_data.expires_in }
+      );
+
+      access_token = { access_token: access_token_data.access_token };
+    }
+
+    // liking / disliking it
+    const query = new URLSearchParams([
+      ["spotify_id", song.spotify_id ?? ""],
+      ["access_token", access_token.access_token],
+    ]).toString();
+    const response = await fetch(
+      "http://localhost:8000" + "/api/song/like" + (isLiked ? "?" + query : ""),
+      {
+        method: isLiked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+
+        body: !isLiked
+          ? JSON.stringify({
+              spotify_id: song.spotify_id,
+              access_token: access_token.access_token,
+            })
+          : null,
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(
+        data?.message ?? "Error with liking/disliking " + song.name,
+        { variant: "error" }
+      );
+      return;
+    }
+
+    enqueueSnackbar(
+      isLiked
+        ? `Removed ${song.name} from liked songs`
+        : `Added ${song.name} to liked songs`,
+      { variant: "success" }
+    );
+    setIsLiked(!isLiked);
+  }
+
+  useEffect(() => {
+    setIsLiked(song.is_liked);
+  }, []);
   return (
     <Card
       sx={{
@@ -51,7 +124,7 @@ export function SongSearchCard({ song }: { song: any }) {
           })}
         </div>
         <div className="flex w-[30%] items-center justify-end gap-3 pr-4 text-text ">
-          <LikeButton tooltip="like" />
+          <LikeButton tooltip="like" fill={isLiked} onClick={swapLike} />
           <span className="text-right">{getFormatedTime(song.playtime)}</span>
           <MoreButton tooltip="More options" />
         </div>

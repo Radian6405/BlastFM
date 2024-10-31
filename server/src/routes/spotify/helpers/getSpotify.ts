@@ -188,3 +188,28 @@ export async function getUserLikedSongs(access_token: string) {
 
   return parsedData;
 }
+
+export async function getSong(access_token: string, song_id: string) {
+  const song_query: string = new URLSearchParams([["market", "IN"]]).toString();
+  const getSongData = await fetch(
+    "https://api.spotify.com/v1/tracks/" + song_id + "?" + song_query,
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+  // console.log(data.items[i].tracks.href + "?" + song_query);
+  if (!getSongData.ok) return null;
+  const song = await getSongData.json();
+
+  return {
+    spotify_id: song.id,
+    name: song.name,
+    cover_image: song.album.images[0].url,
+    playtime: Math.round(song.duration_ms / 1000),
+    artists: song.artists.map((artist: any) => {
+      return { name: artist.name, spotify_id: artist.id };
+    }),
+  };
+}

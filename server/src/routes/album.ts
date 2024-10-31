@@ -237,7 +237,7 @@ router.get(
       } else {
         // cache miss
         const albumSongs = await pool.query(
-          `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image,
+          `SELECT q.id, q.name, q.playtime, q.artists, q.cover_image, q.spotify_id,
           CASE 
             WHEN EXISTS (
               SELECT 1 FROM liked_songs ls 
@@ -248,11 +248,11 @@ router.get(
           FROM albums_songs als
           INNER JOIN
           (
-            SELECT s.id, s.name, s.playtime, s.cover_image ,jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
+            SELECT s.id, s.name, s.playtime, s.cover_image, s.spotify_id ,jsonb_agg(jsonb_build_object('id',a.id,'name',a.name)) as artists
             FROM songs s
             INNER JOIN artists_songs ars ON ars.song_id = s.id
             INNER JOIN artists a ON a.id = ars.artist_id
-            GROUP BY s.id,s.name,s.playtime, s.cover_image
+            GROUP BY s.id,s.name,s.playtime, s.cover_image, s.spotify_id
           ) q ON q.id = als.song_id
           WHERE als.album_id = $1;`,
           [id, req.user?.id ?? 0]

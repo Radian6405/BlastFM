@@ -75,8 +75,8 @@ function Search() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2 items-start justify-center px-16">
-    <div className="text-6xl px-2 py-8">Search Results</div>
+    <div className="flex flex-col items-start justify-center gap-2 px-16">
+      <div className="px-2 py-8 text-6xl">Search Results</div>
       {data == null ? (
         <LoadingCard />
       ) : searchParams.get("option") === "Songs" ? (

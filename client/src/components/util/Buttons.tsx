@@ -12,6 +12,7 @@ interface IconButtonProps {
   fill?: boolean;
   size?: number;
   fontSize?: number;
+  onClick?: React.MouseEventHandler;
 }
 
 export function PlusIconButton({ tooltip }: IconButtonProps) {
@@ -50,7 +51,13 @@ export function TrashIconButton({ tooltip }: IconButtonProps) {
   );
 }
 
-export function LikeButton({ tooltip, fill, size, fontSize }: IconButtonProps) {
+export function LikeButton({
+  tooltip,
+  fill,
+  size,
+  fontSize,
+  onClick,
+}: IconButtonProps) {
   return (
     <Tooltip title={tooltip}>
       {fill ? (
@@ -62,6 +69,7 @@ export function LikeButton({ tooltip, fill, size, fontSize }: IconButtonProps) {
             height: size ?? 40,
           }}
           aria-label="delete"
+          onClick={onClick}
         >
           <FavoriteIcon sx={{ fontSize: fontSize ?? 24 }} />
         </IconButton>
@@ -74,6 +82,7 @@ export function LikeButton({ tooltip, fill, size, fontSize }: IconButtonProps) {
             height: size ?? 40,
           }}
           aria-label="delete"
+          onClick={onClick}
         >
           <FavoriteBorderIcon sx={{ fontSize: fontSize ?? 24 }} />
         </IconButton>

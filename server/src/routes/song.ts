@@ -2,6 +2,10 @@ import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
 import redis from "../cache";
+import { getSong } from "./spotify/helpers/getSpotify";
+import { access } from "fs";
+import { song } from "../types/interfaces";
+import { createArtists, createSongs } from "./spotify/helpers/create";
 const router: Router = Router();
 
 // to ADD song to liked songs
@@ -16,8 +20,8 @@ router.post(
       return;
     }
 
-    const { id } = req.body;
-    if (id === undefined || id === null) {
+    const { spotify_id, access_token } = req.body;
+    if (spotify_id == null || access_token == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -27,36 +31,49 @@ router.post(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.body;
+    const { spotify_id, access_token } = req.body;
     try {
       // checking if song exists
-      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [id]);
+      const song = await pool.query(
+        "SELECT * FROM songs WHERE spotify_id = $1",
+        [spotify_id]
+      );
       if (Number(song.rowCount) === 0) {
-        res.status(400).send({
-          message: "Song does not exist",
-        });
-        return;
+        // create song from spotify
+        const getNewSong: song | null = await getSong(access_token, spotify_id);
+        if (getNewSong == null) {
+          res.status(400).send({ message: "Could not create song" });
+          return;
+        }
+
+        // creating artist and songs
+        const newArtists = await createArtists(getNewSong.artists);
+        const newSong = await createSongs([getNewSong]);
+        if (newSong === 0) {
+          res.status(400).send({ message: "Could not create song" });
+          return;
+        }
       }
 
       // checking if relation already exists
       const relation = await pool.query(
-        "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, id]
+        "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(relation.rowCount) > 0) {
-        res.status(400).send({
+        res.status(200).send({
           message: "Song is already liked",
         });
         return;
       }
 
       const newRelation = await pool.query(
-        "INSERT INTO liked_songs(user_id,song_id) VALUES($1,$2);",
-        [req.user?.id, id]
+        "INSERT INTO liked_songs(user_id,song_id) VALUES($1,(SELECT id FROM songs WHERE spotify_id = $2));",
+        [req.user?.id, spotify_id]
       );
       if (Number(newRelation.rowCount) > 0) {
         res.sendStatus(201);
-        redis.HDEL("LIKED_SONGS", String(req.user?.id));
+        await redis.HDEL("LIKED_SONGS", String(req.user?.id));
       } else
         res.status(400).send({
           message: "Could not like the song",
@@ -79,8 +96,8 @@ router.delete(
       return;
     }
 
-    const { id } = req.query;
-    if (id === undefined || id === null) {
+    const { spotify_id } = req.query;
+    if (spotify_id == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -90,10 +107,13 @@ router.delete(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.query;
+    const { spotify_id } = req.query;
     try {
       // checking if song exists
-      const song = await pool.query("SELECT * FROM songs WHERE id = $1", [id]);
+      const song = await pool.query(
+        "SELECT * FROM songs WHERE spotify_id = $1",
+        [spotify_id]
+      );
       if (Number(song.rowCount) === 0) {
         res.status(400).send({
           message: "Song does not exist",
@@ -103,19 +123,19 @@ router.delete(
 
       // checking if relation exists
       const relation = await pool.query(
-        "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, id]
+        "SELECT * FROM liked_songs WHERE user_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(relation.rowCount) === 0) {
-        res.status(400).send({
+        res.status(200).send({
           message: "Song is not in the liked list",
         });
         return;
       }
 
       const newRelation = await pool.query(
-        "DELETE FROM liked_songs WHERE user_id = $1 AND song_id = $2;",
-        [req.user?.id, id]
+        "DELETE FROM liked_songs WHERE user_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
+        [req.user?.id, spotify_id]
       );
       if (Number(newRelation.rowCount) > 0) {
         res.sendStatus(200);
@@ -154,7 +174,7 @@ router.get(
       let songsData;
       try {
         songsData = await pool.query(
-          `SELECT s.id, s.name, s.playtime, s.cover_image,
+          `SELECT s.id, s.name, s.playtime, s.cover_image, s.spotify_id,
           jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists,
           true AS is_liked 
           FROM liked_songs ls 
@@ -162,7 +182,7 @@ router.get(
           INNER JOIN artists_songs ars ON ars.song_id = s.id 
           INNER JOIN artists a ON a.id = ars.artist_id 
           WHERE ls.user_id = $1 
-          GROUP BY s.id,s.name,s.playtime, s.cover_image
+          GROUP BY s.id,s.name,s.playtime, s.cover_image, s.spotify_id
           `,
           [req.user.id]
         );
@@ -201,7 +221,7 @@ router.get(
     const { id } = req.query;
     try {
       const songDetails = await pool.query(
-        `SELECT s.id, s.name, s.playtime, s.cover_image, 
+        `SELECT s.id, s.name, s.playtime, s.cover_image, s.spotify_id,
             jsonb_agg(jsonb_build_object('id',a.id, 'name', a.name)) as artists,
             CASE 
               WHEN EXISTS (
@@ -214,8 +234,8 @@ router.get(
         INNER JOIN artists_songs ars ON ars.song_id = s.id
         INNER JOIN artists a ON a.id = ars.artist_id
         WHERE s.id = $1
-        GROUP BY s.id,s.name,s.playtime, s.cover_image
-          `,
+        GROUP BY s.id,s.name,s.playtime, s.cover_image, s.spotify_id
+        `,
         [id, req.user?.id ?? 0]
       );
 
