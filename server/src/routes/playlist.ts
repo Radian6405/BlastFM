@@ -17,12 +17,7 @@ router.post(
       });
       return;
     }
-    if (
-      name === undefined ||
-      name === null ||
-      is_private === null ||
-      is_private === undefined
-    ) {
+    if (name == null || is_private == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -73,7 +68,7 @@ router.delete(
   aucthenticateJWT,
   (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.query;
-    if (id === null || id === undefined) {
+    if (id == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });

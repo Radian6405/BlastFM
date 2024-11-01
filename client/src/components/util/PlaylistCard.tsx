@@ -10,9 +10,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import { Link } from "react-router-dom";
+import { useCookies } from "react-cookie";
+import { useSnackbar } from "notistack";
 
 function PlaylistCard({ playlist }: { playlist: playlist }) {
   return (
@@ -77,7 +81,47 @@ export function CreatePlaylistCard() {
 }
 
 export function CreatePlaylistDialog({ children }: { children: ReactNode }) {
+  const [cookie] = useCookies(["token"]);
+  const { enqueueSnackbar } = useSnackbar();
+
   const [open, setOpen] = useState(false);
+
+  const [isPrivate, setIsPrivate] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+
+  async function createPlaylist() {
+    if (name === "") return;
+    if (cookie.token == null) return;
+
+    const response = await fetch(
+      "http://localhost:8000" + "/api/playlist/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          is_private: isPrivate,
+        }),
+      }
+    );
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(data.message ?? "Error creating Playlist", {
+        variant: "error",
+      });
+      return;
+    }
+
+    enqueueSnackbar("Sucessfully created Playlist", { variant: "success" });
+    handleClose();
+    window.location.reload();
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -101,7 +145,7 @@ export function CreatePlaylistDialog({ children }: { children: ReactNode }) {
         <DialogTitle
           id="alert-dialog-title"
           sx={{
-            fontSize: 32,
+            fontSize: 48,
             backgroundColor: "rgba(var(--background))",
             color: "rgba(var(--text))",
           }}
@@ -125,12 +169,33 @@ export function CreatePlaylistDialog({ children }: { children: ReactNode }) {
                   type="text"
                   className="h-full w-full bg-light-background px-2 text-xl"
                   placeholder="Enter a Name"
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                  }}
                 />
               </div>
-              <div className="col-span-3 row-span-3">
+              <div className="col-span-3 row-span-2">
                 <textarea
                   className="h-full w-full bg-light-background p-2 text-xl"
                   placeholder="Add an optional description"
+                  value={description}
+                  onChange={(event) => {
+                    setDescription(event.target.value);
+                  }}
+                />
+              </div>
+              <div className="col-span-3 row-span-2">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      value={isPrivate}
+                      onChange={() => {
+                        setIsPrivate(!isPrivate);
+                      }}
+                    />
+                  }
+                  label="Set a private"
                 />
               </div>
             </div>
@@ -144,7 +209,7 @@ export function CreatePlaylistDialog({ children }: { children: ReactNode }) {
         >
           <Button
             variant="contained"
-            onClick={handleClose}
+            onClick={createPlaylist}
             autoFocus
             sx={{
               backgroundColor: "rgba(var(--primary))",

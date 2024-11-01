@@ -4,7 +4,7 @@ import { Card, CardMedia, CardContent } from "@mui/material";
 import { playlist, song } from "../../util/interfaces";
 import SongCard from "../util/SongCard";
 import { PlusIconButton, TrashIconButton } from "../util/Buttons";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useSnackbar } from "notistack";
@@ -14,9 +14,11 @@ import LoadingCard from "../util/LoadingCard";
 function PlaylistPage() {
   const [playlistDetails, setPlaylistDetails] = useState<playlist | null>(null);
   const [songs, setSongs] = useState<song[] | null>(null);
+
   const [cookie] = useCookies(["token"]);
   const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   async function setPlaylistData() {
     if (typeof id !== "string") return;
@@ -37,6 +39,32 @@ function PlaylistPage() {
     );
     if (typeof data !== "string" && data !== null) setSongs(data);
     else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
+  async function deletePlaylist() {
+    if (id == null) return;
+    if (cookie.token == null) return;
+
+    const response = await fetch(
+      "http://localhost:8000" + "/api/playlist/delete?" + "id=" + id,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+      }
+    );
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(data.message ?? "Error deleting Playlist", {
+        variant: "error",
+      });
+      return;
+    }
+
+    enqueueSnackbar("Sucessfully deleted Playlist", { variant: "success" });
+    navigate("/playlists");
   }
 
   useEffect(() => {
@@ -61,8 +89,8 @@ function PlaylistPage() {
               <>
                 <CardMedia
                   component="img"
-                  alt="green iguana"
-                  height="350"
+                  alt={playlistDetails.name}
+                  sx={{ height: 300, width: 300 }}
                   image={playlistDetails?.cover_image ?? ""} //TODO: add placeholders
                 />
                 <CardContent
@@ -76,7 +104,10 @@ function PlaylistPage() {
                   </div>
                   <div className="my-4 flex flex-row justify-start gap-4 px-2">
                     <PlusIconButton tooltip="Add song" />
-                    <TrashIconButton tooltip={"Delete" + " playlist"} />
+                    <TrashIconButton
+                      tooltip={"Delete" + " playlist"}
+                      onClick={deletePlaylist}
+                    />
                   </div>
                 </CardContent>
               </>
