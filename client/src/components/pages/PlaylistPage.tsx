@@ -140,7 +140,14 @@ function PlaylistPage() {
             <LoadingCard />
           ) : (
             songs.map((song, i) => {
-              return <SongCard playlists={playlistNames} key={i} song={song} />;
+              return (
+                <SongCard
+                  playlists={playlistNames}
+                  key={i}
+                  song={song}
+                  deleteFrom={playlistDetails}
+                />
+              );
             })
           )}
         </div>

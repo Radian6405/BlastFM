@@ -33,20 +33,25 @@ export function PlusIconButton({ tooltip }: IconButtonProps) {
   );
 }
 
-export function TrashIconButton({ tooltip, onClick }: IconButtonProps) {
+export function TrashIconButton({
+  tooltip,
+  size,
+  fontSize,
+  onClick,
+}: IconButtonProps) {
   return (
     <Tooltip title={tooltip}>
       <IconButton
         color="inherit"
         sx={{
           backgroundColor: "rgba(var(--light-background))",
-          width: 60,
-          height: 60,
+          width: size ?? 60,
+          height: size ?? 60,
         }}
         aria-label="delete"
         onClick={onClick}
       >
-        <DeleteIcon sx={{ fontSize: 32 }} />
+        <DeleteIcon sx={{ fontSize: fontSize ?? 32 }} />
       </IconButton>
     </Tooltip>
   );

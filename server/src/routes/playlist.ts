@@ -313,7 +313,7 @@ router.post(
 
     // song_id is always the song's spotify_id
     // plalist_id is always the playlist's regular id
-    
+
     try {
       const song = await pool.query(
         "SELECT * FROM songs WHERE spotify_id = $1",
@@ -404,13 +404,11 @@ router.delete(
       return;
     }
 
+    // song_id is always the song's spotify_id
+    // plalist_id is always the playlist's regular id
+
     const { song_id, playlist_id } = req.query;
-    if (
-      song_id === undefined ||
-      song_id === null ||
-      playlist_id === null ||
-      playlist_id === undefined
-    ) {
+    if (song_id == null || playlist_id == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -425,7 +423,7 @@ router.delete(
     try {
       // checking if relation exists
       const relation = await pool.query(
-        "SELECT * FROM playlists_songs WHERE playlist_id = $1 AND song_id = $2;",
+        "SELECT * FROM playlists_songs WHERE playlist_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
         [playlist_id, song_id]
       );
       if (Number(relation.rowCount) === 0) {
@@ -448,7 +446,7 @@ router.delete(
       }
 
       const newRelation = await pool.query(
-        "DELETE FROM playlists_songs WHERE playlist_id = $1 AND song_id = $2;",
+        "DELETE FROM playlists_songs WHERE playlist_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
         [playlist_id, song_id]
       );
       if (Number(newRelation.rowCount) > 0) {
@@ -459,7 +457,7 @@ router.delete(
             total_playtime = total_playtime - (
               SELECT playtime 
               FROM songs 
-              WHERE id = $1
+              WHERE id = (SELECT id FROM songs WHERE spotify_id = $1)
             )  
             WHERE id = $2;`,
           [song_id, playlist_id]

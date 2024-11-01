@@ -1,9 +1,9 @@
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
-import { artist, playlistCard, song } from "../../util/interfaces";
+import { artist, playlist, playlistCard, song } from "../../util/interfaces";
 import { Box, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
-import { LikeButton, MoreButton } from "./Buttons";
+import { LikeButton, MoreButton, TrashIconButton } from "./Buttons";
 import { getAccessTokens, getFormatedTime } from "../../util/misc";
 import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
@@ -12,9 +12,11 @@ import { enqueueSnackbar } from "notistack";
 function SongCard({
   song,
   playlists,
+  deleteFrom,
 }: {
   song: song;
-  playlists?: playlistCard[] | null;
+  playlists: playlistCard[] | null;
+  deleteFrom?: playlist | null;
 }) {
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [cookie, setCookie] = useCookies(["token", "access_token"]);
@@ -94,7 +96,6 @@ function SongCard({
 
   async function AddToPlaylist(item: playlistCard) {
     if (cookie.token == null || playlists == null) return;
-    console.log(song);
 
     // getting access token
     let access_token = cookie.access_token;
@@ -147,6 +148,42 @@ function SongCard({
       variant: "success",
     });
     handleClose();
+  }
+
+  // deleteing songs from playlists
+  async function deleteFromPlaylist() {
+    if (cookie.token == null || deleteFrom == null || song.spotify_id == null)
+      return;
+
+    const query = new URLSearchParams([
+      ["song_id", song.spotify_id],
+      ["playlist_id", String(deleteFrom.id)],
+    ]).toString();
+    // song_id: song.spotify_id,
+    //       playlist_id: deleteFrom.id,
+    const response = await fetch(
+      "http://localhost:8000" + "/api/playlist/remove?" + query,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: cookie.token.token,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      enqueueSnackbar(
+        data?.message ?? "Error with adding to playlist " + deleteFrom.name,
+        { variant: "error" }
+      );
+      return;
+    }
+
+    enqueueSnackbar(`Removed ${song.name} from ${deleteFrom.name}`, {
+      variant: "success",
+    });
   }
 
   useEffect(() => {
@@ -224,6 +261,13 @@ function SongCard({
               );
             })}
           </Menu>
+          {deleteFrom && (
+            <TrashIconButton
+              size={40}
+              fontSize={24}
+              onClick={deleteFromPlaylist}
+            />
+          )}
         </div>
       </Box>
     </Card>
