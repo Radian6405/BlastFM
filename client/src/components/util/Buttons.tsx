@@ -91,7 +91,7 @@ export function LikeButton({
     </Tooltip>
   );
 }
-export function MoreButton({ tooltip }: IconButtonProps) {
+export function MoreButton({ tooltip, onClick }: IconButtonProps) {
   return (
     <Tooltip title={tooltip}>
       <IconButton
@@ -102,6 +102,7 @@ export function MoreButton({ tooltip }: IconButtonProps) {
           height: 40,
         }}
         aria-label="delete"
+        onClick={onClick}
       >
         <MoreVertIcon sx={{ fontSize: 24 }} />
       </IconButton>

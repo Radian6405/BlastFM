@@ -45,3 +45,8 @@ export interface playlist {
   owner_id: number;
   owner_username?: string | null;
 }
+
+export interface playlistCard {
+  name: string;
+  id: number;
+}

@@ -3,9 +3,10 @@ import { useCookies } from "react-cookie";
 import { useSearchParams } from "react-router-dom";
 import { getAccessTokens } from "../../util/misc";
 import { useSnackbar } from "notistack";
-import { album, song } from "../../util/interfaces";
+import { album, playlist, playlistCard, song } from "../../util/interfaces";
 import LoadingCard from "../util/LoadingCard";
 import { SongSearchCard, AlbumSearchCard } from "../util/SearchCards";
+import { getUserPlaylists } from "../../util/getData";
 
 function Search() {
   const [searchParams] = useSearchParams();
@@ -70,8 +71,29 @@ function Search() {
     setData(parseData(data, option));
   }
 
+  // for playlist menus
+  const [playlistNames, setPlaylistNames] = useState<playlistCard[] | null>(
+    null
+  );
+  async function setPlaylistNamesData() {
+    const data: playlist[] | null | string = await getUserPlaylists(
+      cookie.token.token
+    );
+    if (typeof data !== "string" && data !== null) {
+      setPlaylistNames(
+        data.map((playlist: playlist): playlistCard => {
+          return {
+            name: playlist.name,
+            id: playlist.id,
+          };
+        })
+      );
+    } else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
   useEffect(() => {
     getSearchData();
+    setPlaylistNamesData();
   }, []);
 
   return (
@@ -81,7 +103,9 @@ function Search() {
         <LoadingCard />
       ) : searchParams.get("option") === "Songs" ? (
         data.map((song, i) => {
-          return <SongSearchCard key={i} song={song} />;
+          return (
+            <SongSearchCard key={i} song={song} playlists={playlistNames} />
+          );
         })
       ) : (
         data.map((album, i) => {

@@ -2,6 +2,9 @@ import { Router, Request, Response, NextFunction } from "express";
 import pool from "../db";
 import { aucthenticateJWT } from "../util/authHelpers";
 import redis from "../cache";
+import { createArtists, createSongs } from "./spotify/helpers/create";
+import { getSong } from "./spotify/helpers/getSpotify";
+import { song } from "../types/interfaces";
 const router: Router = Router();
 
 // to CREATE a playlist
@@ -296,12 +299,7 @@ router.post(
     }
 
     const { song_id, playlist_id } = req.body;
-    if (
-      song_id === undefined ||
-      song_id === null ||
-      playlist_id === null ||
-      playlist_id === undefined
-    ) {
+    if (song_id == null || playlist_id == null) {
       res.status(400).send({
         message: "Missing necessary details",
       });
@@ -311,12 +309,37 @@ router.post(
     next();
   },
   async (req: Request, res: Response, next: NextFunction) => {
-    const { song_id, playlist_id } = req.body;
+    const { song_id, playlist_id, access_token } = req.body;
 
+    // song_id is always the song's spotify_id
+    // plalist_id is always the playlist's regular id
+    
     try {
-      // checking if relation alreaDY exists
+      const song = await pool.query(
+        "SELECT * FROM songs WHERE spotify_id = $1",
+        [song_id]
+      );
+
+      if (Number(song.rowCount) === 0) {
+        // create song from spotify
+        const getNewSong: song | null = await getSong(access_token, song_id);
+        if (getNewSong == null) {
+          res.status(400).send({ message: "Could not create song" });
+          return;
+        }
+
+        // creating artists and song
+        const newArtists = await createArtists(getNewSong.artists);
+        const newSong = await createSongs([getNewSong]);
+        if (newSong === 0) {
+          res.status(400).send({ message: "Could not create song" });
+          return;
+        }
+      }
+
+      // checking if relation already exists
       const relation = await pool.query(
-        "SELECT * FROM playlists_songs WHERE playlist_id = $1 AND song_id = $2;",
+        "SELECT * FROM playlists_songs WHERE playlist_id = $1 AND song_id = (SELECT id FROM songs WHERE spotify_id = $2);",
         [playlist_id, song_id]
       );
       if (Number(relation.rowCount) > 0) {
@@ -339,7 +362,7 @@ router.post(
       }
 
       const newRelation = await pool.query(
-        "INSERT INTO playlists_songs(playlist_id,song_id) VALUES($1,$2);",
+        "INSERT INTO playlists_songs(playlist_id,song_id) VALUES($1,(SELECT id FROM songs WHERE spotify_id = $2));",
         [playlist_id, song_id]
       );
       if (Number(newRelation.rowCount) > 0) {
@@ -350,7 +373,7 @@ router.post(
             total_playtime = total_playtime + (
               SELECT playtime 
               FROM songs 
-              WHERE id = $1
+              WHERE id = (SELECT id FROM songs WHERE spotify_id = $1)
             )  
             WHERE id = $2;`,
           [song_id, playlist_id]

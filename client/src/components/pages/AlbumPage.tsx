@@ -1,11 +1,11 @@
 import { Card, CardMedia, CardContent } from "@mui/material";
-import { album, song } from "../../util/interfaces";
+import { album, playlist, playlistCard, song } from "../../util/interfaces";
 import { StarButton } from "../util/Buttons";
 import { useSnackbar } from "notistack";
 import { useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useParams } from "react-router-dom";
-import { getDetails, getSongs } from "../../util/getData";
+import { getDetails, getSongs, getUserPlaylists } from "../../util/getData";
 import LoadingCard from "../util/LoadingCard";
 import SongCard from "../util/SongCard";
 import { getAccessTokens } from "../../util/misc";
@@ -108,15 +108,36 @@ function AlbumPage() {
     setIsStarred(!isStarred);
   }
 
+  // for playlist menus
+  const [playlistNames, setPlaylistNames] = useState<playlistCard[] | null>(
+    null
+  );
+  async function setPlaylistNamesData() {
+    const data: playlist[] | null | string = await getUserPlaylists(
+      cookie.token.token
+    );
+    if (typeof data !== "string" && data !== null) {
+      setPlaylistNames(
+        data.map((playlist: playlist): playlistCard => {
+          return {
+            name: playlist.name,
+            id: playlist.id,
+          };
+        })
+      );
+    } else if (typeof data === "string") enqueueSnackbar(data);
+  }
+
   useEffect(() => {
     setAlbumData();
     setAlbumSongsData();
+    setPlaylistNamesData();
   }, []);
 
   return (
     <>
-      <div className="flex items-start justify-center gap-4 py-24">
-        <div className="flex w-1/3 items-center justify-center">
+      <div className="flex items-start justify-center gap-16 py-24">
+        <div className="flex items-center justify-center">
           <Card elevation={0} sx={{ maxWidth: 450 }}>
             {albumDetails === null ? (
               <LoadingCard />
@@ -151,12 +172,12 @@ function AlbumPage() {
             )}
           </Card>
         </div>
-        <div className="flex w-1/2 flex-col gap-4">
+        <div className="flex w-3/5 flex-col gap-4">
           {songs === null ? (
             <LoadingCard />
           ) : (
             songs.map((song, i) => {
-              return <SongCard key={i} song={song} />;
+              return <SongCard playlists={playlistNames} key={i} song={song} />;
             })
           )}
         </div>
