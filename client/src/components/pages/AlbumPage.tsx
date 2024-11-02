@@ -147,7 +147,10 @@ function AlbumPage() {
                   component="img"
                   alt="green iguana"
                   height="350"
-                  image={albumDetails?.cover_image ?? ""} //TODO: add placeholders
+                  image={
+                    albumDetails?.cover_image ??
+                    "../../../public/No_Image_Available.jpg"
+                  }
                 />
                 <CardContent
                   sx={{ backgroundColor: "rgba(var(--background))" }}

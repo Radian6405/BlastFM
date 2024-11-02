@@ -26,15 +26,13 @@ router.post(
       });
       return;
     }
-    if (typeof name !== "string" || name.length > 16) {
-      //TODO after updating database: 16 to 32
+    if (typeof name !== "string" || name.length > 256) {
       res.status(400).send({
         message: "Invalid playlist name",
       });
       return;
     }
-    if (typeof description === "string" && description.length > 32) {
-      //TODO after updating database: 32 to 256
+    if (typeof description === "string" && description.length > 256) {
       res.status(400).send({
         message: "Invalid playlist description",
       });

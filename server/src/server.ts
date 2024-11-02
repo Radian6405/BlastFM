@@ -15,21 +15,19 @@ app.use(express.json());
 app.use("/api", APIRoutes);
 
 async function mainPG() {
-  const client = await pool.connect();
+  let client;
   try {
-    // TODO: add any query to user data table
-    // const response = await client.query("SELECT * FROM user_data LIMIT 1;");
+    client = await pool.connect();
   } catch (error) {
     throw new Error(error);
   } finally {
-    client.release();
+    client?.release();
   }
 }
 
 async function mainRedis() {
-  const client = await redis.connect();
   try {
-    const res = await redis.HSET("USERS", 0, "USER");
+    const client = await redis.connect();
   } catch (error) {
     throw new Error(error);
   }

@@ -112,7 +112,10 @@ function PlaylistPage() {
                   component="img"
                   alt={playlistDetails.name}
                   sx={{ height: 300, width: 300 }}
-                  image={playlistDetails?.cover_image ?? ""} //TODO: add placeholders
+                  image={
+                    playlistDetails?.cover_image ??
+                    "../../../public/No_Image_Available.jpg"
+                  }
                 />
                 <CardContent
                   sx={{ backgroundColor: "rgba(var(--background))" }}

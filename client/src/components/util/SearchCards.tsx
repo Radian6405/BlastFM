@@ -171,7 +171,7 @@ export function SongSearchCard({
       </div> */}
       <CardMedia
         sx={{ height: 60, width: 60 }}
-        image={song?.cover_image ?? ""} //TODO: add placeholders
+        image={song?.cover_image ?? "../../../public/No_Image_Available.jpg"}
         title={song.name}
       />
       <Box
@@ -318,7 +318,7 @@ export function AlbumSearchCard({ album }: { album: any }) {
         </div> */}
       <CardMedia
         sx={{ height: 60, width: 60 }}
-        image={album?.cover_image ?? ""} //TODO: add placeholders
+        image={album?.cover_image ?? "../../../public/No_Image_Available.jpg"}
         title={album.name}
       />
       <Box

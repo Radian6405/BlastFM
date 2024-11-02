@@ -34,7 +34,7 @@ router.get(
       [
         "scope",
         "user-read-email user-library-read user-read-private playlist-read-private",
-      ], //TODO: update the scopes
+      ],
       ["redirect_uri", "http://127.0.0.1:5173/spotify-connection-redirect"],
     ]).toString();
 
