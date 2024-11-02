@@ -111,10 +111,7 @@ function SongPage() {
                   component="img"
                   alt="green iguana"
                   height="350"
-                  image={
-                    song?.cover_image ??
-                    "../../../public/No_Image_Available.jpg"
-                  }
+                  image={song?.cover_image ?? "/No_Image_Available.jpgg"}
                 />
                 <CardContent
                   sx={{ backgroundColor: "rgba(var(--background))" }}

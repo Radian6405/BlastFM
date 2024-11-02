@@ -70,7 +70,16 @@ function PreReg() {
         </Button>
       </div>
       <div className="col-span-1 col-start-2 row-span-3 flex flex-col items-center justify-center">
-        <div className="h-[24rem] w-[32rem] bg-accent"></div>
+        <img src={"/Illustration_1.jpg"} className="h-[28rem] w-[40rem]" />
+        <div className="text-md text-text/70">
+          asset from{" "}
+          <a
+            href="http://www.freepik.com/"
+            className="text-blue-500 hover:text-blue-300"
+          >
+            freepik.com
+          </a>
+        </div>
       </div>
     </>
   );
@@ -80,7 +89,7 @@ function PreConnect() {
   return (
     <>
       <div className="col-span-1 col-start-1 row-span-3 flex flex-col items-center justify-center">
-        <div className="h-[24rem] w-[32rem] bg-green-200"></div>
+        <img src={"/Spotify.png"} className=" w-[40rem]" />
       </div>
       <div className="col-span-1 col-start-2 row-span-1 row-start-1 flex flex-col items-start justify-end gap-4">
         <div className="text-7xl font-bold">

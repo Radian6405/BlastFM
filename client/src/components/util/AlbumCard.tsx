@@ -15,7 +15,7 @@ function AlbumCard({ album }: { album: album }) {
     >
       <CardMedia
         sx={{ height: 300, width: 300 }}
-        image={album?.cover_image ?? "../../../public/No_Image_Available.jpg"}
+        image={album?.cover_image ?? "/No_Image_Available.jpgg"}
         title={album.name}
       />
       <CardContent

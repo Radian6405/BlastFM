@@ -29,9 +29,7 @@ function PlaylistCard({ playlist }: { playlist: playlist }) {
     >
       <CardMedia
         sx={{ height: 300, width: 300 }}
-        image={
-          playlist?.cover_image ?? "../../../public/No_Image_Available.jpg"
-        }
+        image={playlist?.cover_image ?? "/No_Image_Available.jpgg"}
         title={playlist.name}
       />
       <CardContent

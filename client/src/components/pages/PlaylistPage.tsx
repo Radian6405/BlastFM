@@ -113,8 +113,7 @@ function PlaylistPage() {
                   alt={playlistDetails.name}
                   sx={{ height: 300, width: 300 }}
                   image={
-                    playlistDetails?.cover_image ??
-                    "../../../public/No_Image_Available.jpg"
+                    playlistDetails?.cover_image ?? "/No_Image_Available.jpgg"
                   }
                 />
                 <CardContent

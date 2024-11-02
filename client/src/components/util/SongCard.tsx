@@ -212,7 +212,7 @@ function SongCard({
       </div> */}
       <CardMedia
         sx={{ height: 60, width: 60 }}
-        image={song?.cover_image ?? "../../../public/No_Image_Available.jpg"}
+        image={song?.cover_image ?? "/No_Image_Available.jpgg"}
         title={song.name}
       />
       <Box
