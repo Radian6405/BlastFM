@@ -61,7 +61,7 @@ To run this project, you will need to add the following environment variables to
 POSTGRES_HOST=postgres-c
 POSTGRES_PORT=5000
 POSTGRES_USER=<postgres username>
-POSTGRES_PASSWORD=<postgres username>
+POSTGRES_PASSWORD=<postgres password>
 POSTGRES_DB=blastfm
 
 SERVER_HOST=server-c
